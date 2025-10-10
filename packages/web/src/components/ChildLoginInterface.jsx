@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../stores/authStore';
@@ -15,6 +15,27 @@ export default function ChildLoginInterface() {
 
   const navigate = useNavigate();
   const login = useAuthStore(state => state.login);
+
+  // Sauvegarder une famille et ses enfants
+  const saveFamily = useCallback((familyId, children) => {
+    const familyData = {
+      familyId,
+      children: children.map(child => ({
+        id: child.id,
+        name: child.name,
+        age: child.age,
+        avatar: child.avatar
+      })),
+      lastUsed: new Date().toISOString()
+    };
+
+    setSavedFamilies(prevFamilies => {
+      const existingFamilies = prevFamilies.filter(f => f.familyId !== familyId);
+      const updatedFamilies = [...existingFamilies, familyData];
+      localStorage.setItem('routineStars-families', JSON.stringify(updatedFamilies));
+      return updatedFamilies;
+    });
+  }, []);
 
   // Charger les familles sauvegardées au montage
   useEffect(() => {
@@ -40,7 +61,7 @@ export default function ChildLoginInterface() {
     if (children.length > 0 && familyId) {
       saveFamily(familyId, children);
     }
-  }, [children, familyId]);
+  }, [children, familyId, saveFamily]);
 
   // Récupérer la liste des enfants depuis l'API
   const { data: children = [], isLoading } = useQuery({
@@ -72,26 +93,6 @@ export default function ChildLoginInterface() {
     if (familyId.trim()) {
       setShowFamilyInput(false);
     }
-  };
-
-  // Sauvegarder une famille et ses enfants
-  const saveFamily = (familyId, children) => {
-    const familyData = {
-      familyId,
-      children: children.map(child => ({
-        id: child.id,
-        name: child.name,
-        age: child.age,
-        avatar: child.avatar
-      })),
-      lastUsed: new Date().toISOString()
-    };
-
-    const existingFamilies = savedFamilies.filter(f => f.familyId !== familyId);
-    const updatedFamilies = [...existingFamilies, familyData];
-    
-    setSavedFamilies(updatedFamilies);
-    localStorage.setItem('routineStars-families', JSON.stringify(updatedFamilies));
   };
 
   const handlePinSubmit = async e => {
