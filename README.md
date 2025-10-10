@@ -287,7 +287,7 @@ pnpm start:web        # Preview du build web
 - [ ] Validation parent avec commentaires
 - [ ] Génération automatique des tâches quotidiennes
 - [ ] Système de récompenses et badges
-- [ ] Statistiques et graphiques
+- [ ] Statistiquec ess et graphiques
 - [ ] Notifications (web push)
 - [ ] Mode hors ligne (PWA)
 - [ ] Application mobile React Native
