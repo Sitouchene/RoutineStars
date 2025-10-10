@@ -138,18 +138,18 @@ export default function StatsPage() {
 
 // Fonction utilitaire pour obtenir le début de la semaine
 function getWeekStart(date) {
-  const d = new Date(date + 'T00:00:00');
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Ajuster pour commencer le lundi (local)
-  const monday = new Date(d);
+  const dateObj = new Date(date + 'T00:00:00');
+  const day = dateObj.getDay();
+  const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1); // Ajuster pour commencer le lundi (local)
+  const monday = new Date(dateObj);
   monday.setDate(diff);
   return formatLocalDate(monday);
 }
 
-function formatLocalDate(d) {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+function formatLocalDate(dateObj) {
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
