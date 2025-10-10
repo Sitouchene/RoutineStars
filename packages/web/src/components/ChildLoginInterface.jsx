@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../stores/authStore';
-import { childrenApi, authApi } from '../lib/api-client';
+import { childrenApi, authApi, apiClient } from '../lib/api-client';
 
 export default function ChildLoginInterface() {
   const [selectedChild, setSelectedChild] = useState(null);
@@ -11,9 +11,36 @@ export default function ChildLoginInterface() {
   const [loading, setLoading] = useState(false);
   const [familyId, setFamilyId] = useState('');
   const [showFamilyInput, setShowFamilyInput] = useState(true);
+  const [savedFamilies, setSavedFamilies] = useState([]);
 
   const navigate = useNavigate();
   const login = useAuthStore(state => state.login);
+
+  // Charger les familles sauvegardées au montage
+  useEffect(() => {
+    const saved = localStorage.getItem('routineStars-families');
+    if (saved) {
+      try {
+        const families = JSON.parse(saved);
+        setSavedFamilies(families);
+        
+        // Si une seule famille, la sélectionner automatiquement
+        if (families.length === 1) {
+          setFamilyId(families[0].familyId);
+          setShowFamilyInput(false);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des familles:', error);
+      }
+    }
+  }, []);
+
+  // Sauvegarder automatiquement les enfants quand ils sont chargés
+  useEffect(() => {
+    if (children.length > 0 && familyId) {
+      saveFamily(familyId, children);
+    }
+  }, [children, familyId]);
 
   // Récupérer la liste des enfants depuis l'API
   const { data: children = [], isLoading } = useQuery({
@@ -22,9 +49,9 @@ export default function ChildLoginInterface() {
       if (!familyId) return [];
       
       try {
-        const response = await fetch(`http://localhost:3001/api/families/${familyId}/children`);
-        if (!response.ok) throw new Error('Famille non trouvée');
-        return await response.json();
+        // Utiliser la route publique pour récupérer les enfants d'une famille
+        const response = await apiClient.get(`/families/${familyId}/children`);
+        return response;
       } catch (error) {
         console.error('Erreur lors du chargement des enfants:', error);
         return [];
@@ -45,6 +72,26 @@ export default function ChildLoginInterface() {
     if (familyId.trim()) {
       setShowFamilyInput(false);
     }
+  };
+
+  // Sauvegarder une famille et ses enfants
+  const saveFamily = (familyId, children) => {
+    const familyData = {
+      familyId,
+      children: children.map(child => ({
+        id: child.id,
+        name: child.name,
+        age: child.age,
+        avatar: child.avatar
+      })),
+      lastUsed: new Date().toISOString()
+    };
+
+    const existingFamilies = savedFamilies.filter(f => f.familyId !== familyId);
+    const updatedFamilies = [...existingFamilies, familyData];
+    
+    setSavedFamilies(updatedFamilies);
+    localStorage.setItem('routineStars-families', JSON.stringify(updatedFamilies));
   };
 
   const handlePinSubmit = async e => {
@@ -78,37 +125,79 @@ export default function ChildLoginInterface() {
     setPin(prev => prev.slice(0, -1));
   };
 
-  // Interface de saisie de l'ID famille
+  // Interface de sélection de famille
   if (showFamilyInput) {
     return (
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-          Entrer l'ID de la famille
+          Choisir ta famille
         </h3>
-        <form onSubmit={handleFamilySubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ID Famille
-            </label>
-            <input
-              type="text"
-              value={familyId}
-              onChange={e => setFamilyId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Ex: abc123-def456-ghi789"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Demandez à papa/maman l'ID de votre famille
-            </p>
+        
+        {savedFamilies.length > 0 ? (
+          <div className="space-y-3">
+            <div className="text-sm text-gray-600 mb-4 text-center">
+              Familles sauvegardées ({savedFamilies.length})
+            </div>
+            {savedFamilies.map(family => (
+              <button
+                key={family.familyId}
+                onClick={() => {
+                  setFamilyId(family.familyId);
+                  setShowFamilyInput(false);
+                }}
+                className="w-full p-4 border-2 border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-colors text-left"
+              >
+                <div className="font-semibold text-lg">
+                  Famille {family.familyId.slice(-8)}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {family.children.length} enfant{family.children.length > 1 ? 's' : ''} • 
+                  Dernière utilisation: {new Date(family.lastUsed).toLocaleDateString('fr-FR')}
+                </div>
+              </button>
+            ))}
           </div>
-          <button
-            type="submit"
-            className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors"
-          >
-            Continuer
-          </button>
-        </form>
+        ) : (
+          <form onSubmit={handleFamilySubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ID Famille
+              </label>
+              <input
+                type="text"
+                value={familyId}
+                onChange={e => setFamilyId(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Ex: abc123-def456-ghi789"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Demandez à papa/maman l'ID de votre famille
+              </p>
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+            >
+              Continuer
+            </button>
+          </form>
+        )}
+        
+        {savedFamilies.length > 0 && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => {
+                setFamilyId('');
+                setSavedFamilies([]);
+                localStorage.removeItem('routineStars-families');
+              }}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Ajouter une nouvelle famille
+            </button>
+          </div>
+        )}
       </div>
     );
   }
