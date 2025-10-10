@@ -1,0 +1,182 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Famille (compte principal)
+model Family {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users         User[]
+  taskTemplates TaskTemplate[]
+  dailyMessages DailyMessage[]
+  evaluationWindows EvaluationWindow[]
+
+  @@map("families")
+}
+
+// Utilisateurs (parents et enfants)
+model User {
+  id       String  @id @default(uuid())
+  familyId String
+  role     String // 'parent' ou 'child'
+  name     String
+  email    String? @unique // Uniquement pour parents
+  password String? // Uniquement pour parents (haché)
+  age      Int? // Uniquement pour enfants
+  pin      String? // Uniquement pour enfants (haché)
+  avatar   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  family       Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  tasks        Task[]
+  rewards      Reward[]
+  assignments  TaskAssignment[]
+  daySubmissions DaySubmission[]
+  dailyMessages DailyMessage[]
+  evaluationWindows EvaluationWindow[]
+
+  @@map("users")
+}
+
+// Modèles de tâches (créés par parents)
+model TaskTemplate {
+  id          String  @id @default(uuid())
+  familyId    String
+  title       String
+  category    String // 'routine', 'maison', 'etudes'
+  icon        String?
+  points      Int     @default(5)
+  recurrence  String // 'daily', 'weekday', 'weekend', etc.
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  family      Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  assignments TaskAssignment[]
+
+  @@map("task_templates")
+}
+
+// Tâches assignées quotidiennes
+model Task {
+  id             String    @id @default(uuid())
+  taskTemplateId String
+  userId         String // ID de l'enfant
+  date           DateTime // Date de la tâche
+  status         String    @default("assigned") // 'assigned', 'self_evaluated', 'submitted', 'validated'
+  selfScore      Int? // 0-100
+  parentScore    Int? // 0-100
+  parentComment  String?
+  lockedAt       DateTime? // Quand le parent a validé
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  taskTemplate TaskTemplate @relation(fields: [taskTemplateId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskTemplateId, date])
+  @@map("tasks")
+}
+
+// Messages du jour (par famille ou ciblé à un enfant)
+model DailyMessage {
+  id        String   @id @default(uuid())
+  familyId  String
+  childId   String?  // si null => message global à la famille
+  date      DateTime
+  message   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  child  User?  @relation(fields: [childId], references: [id])
+
+  @@unique([familyId, childId, date])
+  @@map("daily_messages")
+}
+
+// Fenêtre horaire d'autoévaluation/soumission
+model EvaluationWindow {
+  id        String   @id @default(uuid())
+  familyId  String
+  childId   String?   // si null => règle par défaut pour la famille
+  startTime String    // format HH:mm
+  endTime   String    // format HH:mm
+  daysMask  String    // ex: "1,1,1,1,1,1,1" pour L..D
+  timezone  String    // ex: "Europe/Paris"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  child  User?  @relation(fields: [childId], references: [id])
+
+  @@unique([familyId, childId])
+  @@map("evaluation_windows")
+}
+
+// Assignations de tâches (qui peut avoir quelle tâche)
+model TaskAssignment {
+  id             String    @id @default(uuid())
+  taskTemplateId String
+  childId        String
+  startDate      DateTime
+  endDate        DateTime?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  taskTemplate TaskTemplate @relation(fields: [taskTemplateId], references: [id], onDelete: Cascade)
+  child        User          @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@map("task_assignments")
+}
+
+// Soumissions de journée par enfant
+model DaySubmission {
+  id        String   @id @default(uuid())
+  childId   String
+  date      DateTime // Date de la soumission
+  submittedAt DateTime @default(now()) // Quand l'enfant a soumis
+  validatedAt DateTime? // Quand le parent a validé
+  parentComment String? // Commentaire général du parent pour la journée
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  child User @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, date])
+  @@map("day_submissions")
+}
+
+// Récompenses et badges
+model Reward {
+  id        String   @id @default(uuid())
+  userId    String
+  badgeType String
+  earnedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("rewards")
+}
+
+

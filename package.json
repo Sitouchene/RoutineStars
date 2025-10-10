@@ -1,0 +1,31 @@
+{
+  "name": "routinestars",
+  "version": "1.0.0",
+  "description": "Application de gestion de routines et tâches pour enfants avec système de récompenses",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm run --parallel dev",
+    "dev:api": "pnpm --filter api dev",
+    "dev:web": "pnpm --filter web dev",
+    "build": "pnpm run --filter api build && pnpm run --filter web build",
+    "start:api": "pnpm --filter api start",
+    "start:web": "pnpm --filter web preview",
+    "db:push": "pnpm --filter api db:push",
+    "db:studio": "pnpm --filter api db:studio",
+    "format": "prettier --write \"**/*.{js,jsx,json,md}\""
+  },
+  "keywords": [
+    "routine",
+    "kids",
+    "tasks",
+    "family",
+    "education"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^3.1.1"
+  }
+}
+
+
