@@ -1,0 +1,14 @@
+# Render configuration
+# This file configures how Render builds and deploys your service
+
+# Build command with no frozen lockfile to handle dependency updates
+buildCommand: pnpm install --no-frozen-lockfile && pnpm run build
+
+# Start command
+startCommand: pnpm start
+
+# Node.js version
+nodeVersion: 22.16.0
+
+# Environment
+environment: production
