@@ -1,32 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Calendar, Play, Pause } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { assignmentsApi } from '../../lib/api-client';
 
-export default function EditAssignmentModal({ assignment, onClose, onSuccess }) {
+export default function CreateAssignmentModal({ task, child, onClose, onSuccess }) {
   const { getAuthHeader, user } = useAuthStore();
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
-    startDate: '',
-    endDate: '',
+    startDate: new Date().toISOString().split('T')[0], // Aujourd'hui
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Dans 30 jours
     isActive: true,
   });
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (assignment) {
-      setFormData({
-        startDate: assignment.startDate.split('T')[0],
-        endDate: assignment.endDate.split('T')[0],
-        isActive: assignment.isActive,
-      });
-    }
-  }, [assignment]);
-
-  const updateAssignmentMutation = useMutation({
-    mutationFn: (data) => assignmentsApi.update(assignment.id, data, getAuthHeader()),
+  const createAssignmentMutation = useMutation({
+    mutationFn: (data) => assignmentsApi.create(data, getAuthHeader()),
     onSuccess: () => {
       onSuccess();
     },
@@ -45,13 +35,15 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
       return;
     }
 
-    const updateData = {
+    const assignmentData = {
+      taskTemplateId: task.id,
+      childId: child.id,
       startDate: formData.startDate,
       endDate: formData.endDate,
       isActive: formData.isActive,
     };
 
-    updateAssignmentMutation.mutate(updateData);
+    createAssignmentMutation.mutate(assignmentData);
   };
 
   const handleChange = (e) => {
@@ -61,17 +53,15 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
     }));
   };
 
-  if (!assignment) return null;
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl w-full max-w-md p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Modifier l'assignation</h3>
+            <h3 className="text-xl font-bold text-gray-900">Assigner une tâche</h3>
             <p className="text-gray-600 mt-1">
-              Modifier les paramètres de l'assignation
+              Créer une assignation pour {child.name}
             </p>
           </div>
           <button
@@ -82,14 +72,14 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
           </button>
         </div>
 
-        {/* Informations de l'assignation */}
+        {/* Informations de la tâche */}
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="text-2xl">{assignment.taskTemplate?.icon}</div>
+            <div className="text-2xl">{task.icon}</div>
             <div>
-              <h4 className="font-semibold text-gray-900">{assignment.taskTemplate?.title}</h4>
+              <h4 className="font-semibold text-gray-900">{task.title}</h4>
               <p className="text-sm text-gray-600">
-                Assigné à {assignment.child?.name} • {assignment.taskTemplate?.points} points
+                {task.category} • {task.points} points
               </p>
             </div>
           </div>
@@ -173,9 +163,9 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
             <button
               type="submit"
               className="flex-1 btn btn-primary"
-              disabled={updateAssignmentMutation.isPending}
+              disabled={createAssignmentMutation.isPending}
             >
-              {updateAssignmentMutation.isPending ? 'Modification...' : 'Modifier l\'assignation'}
+              {createAssignmentMutation.isPending ? 'Création...' : 'Créer l\'assignation'}
             </button>
           </div>
         </form>

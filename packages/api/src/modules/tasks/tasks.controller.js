@@ -115,7 +115,7 @@ export async function selfEvaluateTaskController(req, res, next) {
     const validatedData = selfEvaluateSchema.parse(req.body);
     const task = await tasksService.selfEvaluateTask(
       req.params.id,
-      req.user.userId,
+      req.user.id,
       validatedData.score
     );
     res.json(task);

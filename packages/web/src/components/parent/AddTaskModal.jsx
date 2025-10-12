@@ -1,21 +1,34 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { X, BookOpen, Plus, Lock } from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../stores/authStore';
-import { tasksApi } from '../../lib/api-client';
-import { TASK_CATEGORIES, TASK_RECURRENCE } from 'shared/constants';
+import { tasksApi, categoriesApi } from '../../lib/api-client';
+import { TASK_RECURRENCE } from 'shared/constants';
+import TemplateTaskSelector from './TemplateTaskSelector';
 
 export default function AddTaskModal({ onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     title: '',
-    category: TASK_CATEGORIES.ROUTINE,
+    categoryId: '', // Utiliser categoryId au lieu de category
     icon: '',
     points: 5,
     recurrence: TASK_RECURRENCE.DAILY,
     description: '',
   });
   const [error, setError] = useState('');
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const { getAuthHeader, user } = useAuthStore();
+
+  // Récupérer les catégories disponibles
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ['categories', user?.familyId],
+    queryFn: () => categoriesApi.getAll(getAuthHeader()),
+    enabled: !!user?.familyId,
+  });
+
+  // Séparer les catégories système et personnalisées (actives uniquement)
+  const systemCategories = categories.filter(cat => cat.isSystem && cat.isActive);
+  const familyCategories = categories.filter(cat => !cat.isSystem && cat.isActive);
 
   const addTaskMutation = useMutation({
     mutationFn: data => tasksApi.createTemplate(data, getAuthHeader()),
@@ -26,6 +39,21 @@ export default function AddTaskModal({ onClose, onSuccess }) {
       setError(error.message);
     },
   });
+
+  const handleUseTemplate = (template) => {
+    // Trouver la catégorie correspondante
+    const category = categories.find(cat => cat.title === template.category);
+    
+    setFormData({
+      title: template.task,
+      categoryId: category?.id || '', // Utiliser l'ID de la catégorie
+      icon: template.icon,
+      points: template.points,
+      recurrence: template.recurrence,
+      description: template.description || '',
+    });
+    setShowTemplateSelector(false);
+  };
 
   const handleChange = e => {
     setFormData(prev => ({
@@ -44,6 +72,11 @@ export default function AddTaskModal({ onClose, onSuccess }) {
       return;
     }
 
+    if (!formData.categoryId) {
+      setError('La catégorie est requise');
+      return;
+    }
+
     if (formData.points < 1 || formData.points > 100) {
       setError('Les points doivent être entre 1 et 100');
       return;
@@ -52,13 +85,9 @@ export default function AddTaskModal({ onClose, onSuccess }) {
     addTaskMutation.mutate(formData);
   };
 
-  const getCategoryIcon = category => {
-    const icons = {
-      [TASK_CATEGORIES.ROUTINE]: '🌅',
-      [TASK_CATEGORIES.MAISON]: '🏠',
-      [TASK_CATEGORIES.ETUDES]: '📚',
-    };
-    return icons[category] || '📋';
+  const getCategoryIcon = categoryId => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category?.icon || '📋';
   };
 
   return (
@@ -99,20 +128,31 @@ export default function AddTaskModal({ onClose, onSuccess }) {
               Catégorie *
             </label>
             <select
-              name="category"
-              value={formData.category}
+              name="categoryId"
+              value={formData.categoryId}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              required
             >
-              <option value={TASK_CATEGORIES.ROUTINE}>
-                🌅 Routine quotidienne
-              </option>
-              <option value={TASK_CATEGORIES.MAISON}>
-                🏠 Participation à la maison
-              </option>
-              <option value={TASK_CATEGORIES.ETUDES}>
-                📚 Études et apprentissage
-              </option>
+              <option value="">Sélectionner une catégorie</option>
+              {categoriesLoading ? (
+                <option disabled>Chargement des catégories...</option>
+              ) : (
+                <>
+                  {/* Catégories système */}
+                  {systemCategories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.icon} {category.display}
+                    </option>
+                  ))}
+                  {/* Catégories personnalisées */}
+                  {familyCategories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.icon} {category.display}
+                    </option>
+                  ))}
+                </>
+              )}
             </select>
           </div>
 
@@ -129,7 +169,7 @@ export default function AddTaskModal({ onClose, onSuccess }) {
               placeholder="Ex: 🧹 (ou laisser vide pour l'icône par défaut)"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Icône par défaut : {getCategoryIcon(formData.category)}
+              Icône par défaut : {getCategoryIcon(formData.categoryId)}
             </p>
           </div>
 
@@ -184,9 +224,20 @@ export default function AddTaskModal({ onClose, onSuccess }) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Description détaillée de la tâche..."
             />
-          </div>
+        </div>
 
-          {error && (
+        {/* Bouton bibliothèque */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowTemplateSelector(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 border-2 border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-colors"
+          >
+            <BookOpen className="w-5 h-5 text-blue-600" />
+            <span className="font-medium text-blue-700">Choisir depuis la bibliothèque</span>
+          </button>
+        </div>
+
+        {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
               {error}
             </div>
@@ -212,6 +263,14 @@ export default function AddTaskModal({ onClose, onSuccess }) {
           </div>
         </form>
       </div>
+
+      {/* Sélecteur de tâches prédéfinies */}
+      {showTemplateSelector && (
+        <TemplateTaskSelector
+          onSelect={handleUseTemplate}
+          onClose={() => setShowTemplateSelector(false)}
+        />
+      )}
     </div>
   );
 }

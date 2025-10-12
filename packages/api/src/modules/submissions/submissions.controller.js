@@ -12,7 +12,7 @@ const validateSubmissionSchema = z.object({
 export async function submitDayController(req, res, next) {
   try {
     const { date } = req.body;
-    const submission = await submissionsService.submitDay(req.user.userId, date);
+    const submission = await submissionsService.submitDay(req.user.id, date);
     res.status(201).json(submission);
   } catch (error) {
     next(error);
@@ -26,7 +26,7 @@ export async function getChildSubmissionsController(req, res, next) {
   try {
     const { limit } = req.query;
     const submissions = await submissionsService.getChildSubmissions(
-      req.user.userId,
+      req.user.id,
       limit ? parseInt(limit) : 30
     );
     res.json(submissions);

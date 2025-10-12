@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../stores/authStore';
-import { tasksApi } from '../../lib/api-client';
-import { TASK_CATEGORIES, TASK_RECURRENCE } from 'shared/constants';
+import { tasksApi, categoriesApi } from '../../lib/api-client';
+import { TASK_RECURRENCE } from 'shared/constants';
 
 export default function EditTaskModal({ task, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     title: '',
-    category: TASK_CATEGORIES.ROUTINE,
+    categoryId: '', // Utiliser categoryId au lieu de category
     icon: '',
     points: 5,
     recurrence: TASK_RECURRENCE.DAILY,
@@ -17,11 +17,22 @@ export default function EditTaskModal({ task, onClose, onSuccess }) {
   const [error, setError] = useState('');
   const { getAuthHeader, user } = useAuthStore();
 
+  // Récupérer les catégories disponibles
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ['categories', user?.familyId],
+    queryFn: () => categoriesApi.getAll(getAuthHeader()),
+    enabled: !!user?.familyId,
+  });
+
+  // Séparer les catégories système et personnalisées (actives uniquement)
+  const systemCategories = categories.filter(cat => cat.isSystem && cat.isActive);
+  const familyCategories = categories.filter(cat => !cat.isSystem && cat.isActive);
+
   // Initialiser le formulaire avec les données de la tâche
   useEffect(() => {
     setFormData({
       title: task.title || '',
-      category: task.category || TASK_CATEGORIES.ROUTINE,
+      categoryId: task.categoryId || '', // Utiliser categoryId
       icon: task.icon || '',
       points: task.points || 5,
       recurrence: task.recurrence || TASK_RECURRENCE.DAILY,
@@ -56,6 +67,11 @@ export default function EditTaskModal({ task, onClose, onSuccess }) {
       return;
     }
 
+    if (!formData.categoryId) {
+      setError('La catégorie est requise');
+      return;
+    }
+
     if (formData.points < 1 || formData.points > 100) {
       setError('Les points doivent être entre 1 et 100');
       return;
@@ -64,13 +80,9 @@ export default function EditTaskModal({ task, onClose, onSuccess }) {
     updateTaskMutation.mutate(formData);
   };
 
-  const getCategoryIcon = category => {
-    const icons = {
-      [TASK_CATEGORIES.ROUTINE]: '🌅',
-      [TASK_CATEGORIES.MAISON]: '🏠',
-      [TASK_CATEGORIES.ETUDES]: '📚',
-    };
-    return icons[category] || '📋';
+  const getCategoryIcon = categoryId => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category?.icon || '📋';
   };
 
   return (
@@ -110,20 +122,31 @@ export default function EditTaskModal({ task, onClose, onSuccess }) {
               Catégorie *
             </label>
             <select
-              name="category"
-              value={formData.category}
+              name="categoryId"
+              value={formData.categoryId}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              required
             >
-              <option value={TASK_CATEGORIES.ROUTINE}>
-                🌅 Routine quotidienne
-              </option>
-              <option value={TASK_CATEGORIES.MAISON}>
-                🏠 Participation à la maison
-              </option>
-              <option value={TASK_CATEGORIES.ETUDES}>
-                📚 Études et apprentissage
-              </option>
+              <option value="">Sélectionner une catégorie</option>
+              {categoriesLoading ? (
+                <option disabled>Chargement des catégories...</option>
+              ) : (
+                <>
+                  {/* Catégories système */}
+                  {systemCategories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.icon} {category.display}
+                    </option>
+                  ))}
+                  {/* Catégories personnalisées */}
+                  {familyCategories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.icon} {category.display}
+                    </option>
+                  ))}
+                </>
+              )}
             </select>
           </div>
 
@@ -140,7 +163,7 @@ export default function EditTaskModal({ task, onClose, onSuccess }) {
               placeholder="Ex: 🧹 (ou laisser vide pour l'icône par défaut)"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Icône par défaut : {getCategoryIcon(formData.category)}
+              Icône par défaut : {getCategoryIcon(formData.categoryId)}
             </p>
           </div>
 

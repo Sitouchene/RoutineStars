@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../stores/authStore';
 import { childrenApi, authApi, apiClient } from '../lib/api-client';
+import { seedToAvatarUrl } from '../utils/avatarUtils';
 
 export default function ChildLoginInterface() {
   const [selectedChild, setSelectedChild] = useState(null);
@@ -56,13 +57,6 @@ export default function ChildLoginInterface() {
     }
   }, []);
 
-  // Sauvegarder automatiquement les enfants quand ils sont chargés
-  useEffect(() => {
-    if (children.length > 0 && familyId) {
-      saveFamily(familyId, children);
-    }
-  }, [children, familyId, saveFamily]);
-
   // Récupérer la liste des enfants depuis l'API
   const { data: children = [], isLoading } = useQuery({
     queryKey: ['children-for-login', familyId],
@@ -81,6 +75,13 @@ export default function ChildLoginInterface() {
     enabled: !!familyId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Sauvegarder automatiquement les enfants quand ils sont chargés
+  useEffect(() => {
+    if (children.length > 0 && familyId) {
+      saveFamily(familyId, children);
+    }
+  }, [children, familyId, saveFamily]);
 
   const handleChildSelect = child => {
     setSelectedChild(child);
@@ -241,7 +242,19 @@ export default function ChildLoginInterface() {
                 onClick={() => handleChildSelect(child)}
                 className="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-colors"
               >
-                <div className="text-3xl">{child.avatar || '👦'}</div>
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
+                  {child.avatar ? (
+                    <img
+                      src={seedToAvatarUrl(child.avatar) || child.avatar}
+                      alt={`Avatar de ${child.name}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-xl">
+                      👦
+                    </div>
+                  )}
+                </div>
                 <div className="text-left">
                   <div className="font-semibold text-lg">{child.name}</div>
                   <div className="text-gray-500">{child.age} ans</div>
@@ -257,7 +270,19 @@ export default function ChildLoginInterface() {
   return (
     <div>
       <div className="text-center mb-6">
-        <div className="text-4xl mb-2">{selectedChild.avatar}</div>
+        <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-gray-200 mx-auto mb-2">
+          {selectedChild.avatar ? (
+            <img
+              src={seedToAvatarUrl(selectedChild.avatar) || selectedChild.avatar}
+              alt={`Avatar de ${selectedChild.name}`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-3xl">
+              👦
+            </div>
+          )}
+        </div>
         <h3 className="text-lg font-semibold text-gray-900">
           Salut {selectedChild.name} !
         </h3>

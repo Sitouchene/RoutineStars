@@ -1,5 +1,6 @@
 import * as childrenService from './children.service.js';
 import { childSchema } from 'shared/validators';
+import { z } from 'zod';
 
 /**
  * POST /api/children
@@ -55,6 +56,41 @@ export async function deleteChildController(req, res, next) {
       req.user.familyId
     );
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PUT /api/children/:id/avatar
+ * Permet aux enfants de mettre à jour leur propre avatar
+ */
+export async function updateChildAvatarController(req, res, next) {
+  try {
+    const avatarSchema = z.object({
+      avatar: z.string().min(1, 'Avatar doit être une chaîne valide'),
+    });
+    
+    const { avatar } = avatarSchema.parse(req.body);
+    const childId = req.params.id;
+    
+    // Debug: afficher les IDs pour comprendre le problème
+    console.log('Debug avatar update:', {
+      userId: req.user.id,
+      childId: childId,
+      role: req.user.role,
+      familyId: req.user.familyId,
+      idsMatch: req.user.id === childId
+    });
+    
+    // Vérifier que l'enfant peut mettre à jour son avatar
+    if (req.user.role === 'child' && req.user.id !== childId) {
+      console.log('Access denied: child trying to update different child avatar');
+      return res.status(403).json({ error: 'Accès non autorisé' });
+    }
+    
+    const child = await childrenService.updateChildAvatar(childId, req.user.familyId, avatar);
+    res.json(child);
   } catch (error) {
     next(error);
   }

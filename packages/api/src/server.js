@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3001;
 // Middlewares
 app.use(helmet());
 // Autoriser plusieurs origines (ex: localhost et IP LAN) via CORS_ORIGIN séparé par des virgules
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);

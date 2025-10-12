@@ -17,7 +17,12 @@ export function authenticate(req, res, next) {
     return res.status(401).json({ error: 'Token invalide ou expiré' });
   }
 
-  req.user = decoded;
+  // Mapper les propriétés du token vers req.user
+  req.user = {
+    id: decoded.userId,
+    familyId: decoded.familyId,
+    role: decoded.role,
+  };
   next();
 }
 

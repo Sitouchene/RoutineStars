@@ -22,7 +22,7 @@ export async function getChildDailyStatsController(req, res, next) {
       if (!child) {
         return res.status(403).json({ error: 'Accès non autorisé à cet enfant' });
       }
-    } else if (req.user.role === 'child' && req.user.userId !== childId) {
+    } else if (req.user.role === 'child' && req.user.id !== childId) {
       return res.status(403).json({ error: 'Accès non autorisé' });
     }
 
@@ -53,7 +53,7 @@ export async function getChildWeeklyStatsController(req, res, next) {
       if (!child) {
         return res.status(403).json({ error: 'Accès non autorisé à cet enfant' });
       }
-    } else if (req.user.role === 'child' && req.user.userId !== childId) {
+    } else if (req.user.role === 'child' && req.user.id !== childId) {
       return res.status(403).json({ error: 'Accès non autorisé' });
     }
 
@@ -84,7 +84,7 @@ export async function getChildMonthlyStatsController(req, res, next) {
       if (!child) {
         return res.status(403).json({ error: 'Accès non autorisé à cet enfant' });
       }
-    } else if (req.user.role === 'child' && req.user.userId !== childId) {
+    } else if (req.user.role === 'child' && req.user.id !== childId) {
       return res.status(403).json({ error: 'Accès non autorisé' });
     }
 

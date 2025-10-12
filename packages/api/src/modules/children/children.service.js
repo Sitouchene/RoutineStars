@@ -115,4 +115,36 @@ export async function deleteChild(childId, familyId) {
   return { message: 'Enfant supprimé avec succès' };
 }
 
+/**
+ * Mettre à jour l'avatar d'un enfant
+ */
+export async function updateChildAvatar(childId, familyId, avatar) {
+  const child = await prisma.user.findFirst({
+    where: {
+      id: childId,
+      familyId,
+      role: USER_ROLES.CHILD,
+    },
+  });
+
+  if (!child) {
+    throw new Error('Enfant non trouvé');
+  }
+
+  const updatedChild = await prisma.user.update({
+    where: { id: childId },
+    data: { avatar },
+    select: {
+      id: true,
+      name: true,
+      age: true,
+      avatar: true,
+      role: true,
+      updatedAt: true,
+    },
+  });
+
+  return updatedChild;
+}
+
 

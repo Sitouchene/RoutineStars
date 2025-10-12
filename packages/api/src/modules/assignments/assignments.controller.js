@@ -4,9 +4,15 @@ import { z } from 'zod';
 const taskAssignmentSchema = z.object({
   taskTemplateId: z.string().uuid(),
   childId: z.string().uuid(),
-  startDate: z.string().datetime('Format de date invalide'),
-  endDate: z.string().datetime('Format de date invalide').optional(),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format de date invalide (YYYY-MM-DD)'),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format de date invalide (YYYY-MM-DD)'),
   isActive: z.boolean().default(true),
+});
+
+const updateAssignmentSchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format de date invalide (YYYY-MM-DD)').optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format de date invalide (YYYY-MM-DD)').optional(),
+  isActive: z.boolean().optional(),
 });
 
 /**
@@ -51,10 +57,11 @@ export async function getChildAssignmentsController(req, res, next) {
  */
 export async function updateAssignmentController(req, res, next) {
   try {
+    const validatedData = updateAssignmentSchema.parse(req.body);
     const assignment = await assignmentsService.updateTaskAssignment(
       req.params.id,
       req.user.familyId,
-      req.body
+      validatedData
     );
     res.json(assignment);
   } catch (error) {

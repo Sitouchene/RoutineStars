@@ -18,11 +18,33 @@ model Family {
   updatedAt DateTime @updatedAt
 
   users         User[]
+  categories    Category[]
   taskTemplates TaskTemplate[]
   dailyMessages DailyMessage[]
   evaluationWindows EvaluationWindow[]
 
   @@map("families")
+}
+
+// Catégories de tâches
+model Category {
+  id          String   @id @default(uuid())
+  familyId    String?  // null pour les catégories système, obligatoire pour les catégories personnalisées
+  title       String   // Clé technique (household, routine, study)
+  display     String   // Nom d'affichage (Maison, Routine, Études)
+  description String   // Description détaillée
+  icon        String?  // Icône de la catégorie
+  isSystem    Boolean  @default(false) // true pour les catégories système (protégées)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  family        Family?        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  taskTemplates TaskTemplate[]
+
+  @@unique([title], name: "category_title_unique")
+  @@map("categories")
 }
 
 // Utilisateurs (parents et enfants)
@@ -55,8 +77,8 @@ model User {
 model TaskTemplate {
   id          String  @id @default(uuid())
   familyId    String
+  categoryId  String  // Relation vers Category (obligatoire)
   title       String
-  category    String // 'routine', 'maison', 'etudes'
   icon        String?
   points      Int     @default(5)
   recurrence  String // 'daily', 'weekday', 'weekend', etc.
@@ -66,6 +88,7 @@ model TaskTemplate {
   updatedAt DateTime @updatedAt
 
   family      Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   tasks       Task[]
   assignments TaskAssignment[]
 
@@ -178,5 +201,6 @@ model Reward {
 
   @@map("rewards")
 }
+
 
 

@@ -4,7 +4,10 @@ import * as childrenController from './children.controller.js';
 
 const router = Router();
 
-// Toutes les routes nécessitent authentification parent
+// Route pour que les enfants puissent mettre à jour leur avatar
+router.put('/:id/avatar', authenticate, childrenController.updateChildAvatarController);
+
+// Toutes les autres routes nécessitent authentification parent
 router.use(authenticate, requireParent);
 
 router.post('/', childrenController.createChildController);

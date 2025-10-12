@@ -387,7 +387,7 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
         </h3>
         <div className="grid grid-cols-7 gap-1 text-center">
           {/* En-têtes des jours */}
-          {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(day => (
+          {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
             <div key={day} className="p-2 text-sm font-medium text-gray-600">
               {day}
             </div>

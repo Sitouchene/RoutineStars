@@ -11,6 +11,13 @@ class ApiClient {
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
     
+    console.log('API Request:', {
+      url,
+      method: options.method || 'GET',
+      headers: options.headers,
+      body: options.body
+    });
+    
     const config = {
       ...options,
       headers: {
@@ -21,6 +28,13 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
+      console.log('API Response:', {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+      
       const data = await response.json();
 
       if (!response.ok) {
@@ -29,6 +43,11 @@ class ApiClient {
 
       return data;
     } catch (error) {
+      console.error('API Error:', {
+        url,
+        error: error.message,
+        stack: error.stack
+      });
       throw error;
     }
   }
@@ -56,6 +75,14 @@ class ApiClient {
   delete(endpoint, options) {
     return this.request(endpoint, { ...options, method: 'DELETE' });
   }
+
+  patch(endpoint, body, options) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_URL);
@@ -72,6 +99,8 @@ export const childrenApi = {
   create: (data, headers) => apiClient.post('/children', data, { headers }),
   update: (id, data, headers) =>
     apiClient.put(`/children/${id}`, data, { headers }),
+  updateAvatar: (id, avatar, headers) =>
+    apiClient.put(`/children/${id}/avatar`, { avatar }, { headers }),
   delete: (id, headers) => apiClient.delete(`/children/${id}`, { headers }),
 };
 
@@ -105,6 +134,9 @@ export const assignmentsApi = {
   create: (data, headers) => apiClient.post('/assignments', data, { headers }),
   update: (id, data, headers) => apiClient.put(`/assignments/${id}`, data, { headers }),
   delete: (id, headers) => apiClient.delete(`/assignments/${id}`, { headers }),
+  
+  // Assignations de la famille
+  getFamilyAssignments: headers => apiClient.get('/assignments', { headers }),
   
   // Assignations d'un enfant
   getChildAssignments: (childId, headers) => 
@@ -171,5 +203,30 @@ export const evalWindowApi = {
   },
   upsert: (data, headers) => apiClient.put('/eval-window', data, { headers }),
 };
+
+// Catégories
+export const categoriesApi = {
+  // Récupérer toutes les catégories disponibles (communes + famille)
+  getAll: (headers) => apiClient.get('/categories', { headers }),
+  
+  // Récupérer uniquement les catégories communes
+  getCommon: (headers) => apiClient.get('/categories/common', { headers }),
+  
+  // Récupérer uniquement les catégories de la famille
+  getFamily: (headers) => apiClient.get('/categories/family', { headers }),
+  
+  // Créer une nouvelle catégorie
+  create: (data, headers) => apiClient.post('/categories', data, { headers }),
+  
+  // Mettre à jour une catégorie
+  update: (id, data, headers) => apiClient.put(`/categories/${id}`, data, { headers }),
+  
+  // Supprimer une catégorie
+  delete: (id, headers) => apiClient.delete(`/categories/${id}`, { headers }),
+  
+  // Activer/Désactiver une catégorie
+  toggle: (id, isActive, headers) => apiClient.patch(`/categories/${id}/toggle`, { isActive }, { headers }),
+};
+
 
 

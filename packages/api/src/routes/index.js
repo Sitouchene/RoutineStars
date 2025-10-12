@@ -8,6 +8,7 @@ import submissionsRoutes from '../modules/submissions/submissions.routes.js';
 import statsRoutes from '../modules/stats/stats.routes.js';
 import messagesRoutes from '../modules/messages/messages.routes.js';
 import evalWindowRoutes from '../modules/evalWindow/evalWindow.routes.js';
+import categoriesRoutes from '../modules/categories/categories.routes.js';
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use('/submissions', submissionsRoutes);
 router.use('/stats', statsRoutes);
 router.use('/messages', messagesRoutes);
 router.use('/eval-window', evalWindowRoutes);
+router.use('/categories', categoriesRoutes);
 
 // Route de test
 router.get('/health', (req, res) => {

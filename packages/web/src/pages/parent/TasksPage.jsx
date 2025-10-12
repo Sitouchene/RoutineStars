@@ -118,51 +118,62 @@ export default function TasksPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {taskTemplates.map(template => (
-            <div key={template.id} className="card">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="text-3xl">
+            <div key={template.id} className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-blue-500">
+              {/* Ligne principale : Icône + Titre + Points */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">
                     {template.icon || getCategoryIcon(template.category)}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">{template.title}</h3>
-                    <p className="text-sm text-gray-500">
-                      {getCategoryName(template.category)}
-                    </p>
+                  </span>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {template.title}
+                    </h3>
+                    {template.description && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        {template.description}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                
+                {/* Points en haut à droite */}
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <span className="text-xs text-gray-500">
+                    {template.points} pts
+                  </span>
+                </div>
+              </div>
+
+              {/* Ligne de séparation */}
+              <div className="border-t border-gray-200 mb-3"></div>
+
+              {/* Ligne inférieure : Récurrence + Actions */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Clock className="w-4 h-4" />
+                  <span>{template.recurrence}</span>
+                </div>
+                
+                {/* Boutons d'action */}
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setEditingTask(template)}
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     title="Modifier"
                   >
                     <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(template.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Supprimer"
                     disabled={deleteTaskMutation.isPending}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <span>{template.recurrence}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="font-medium">{template.points} points</span>
-                </div>
-                {template.description && (
-                  <p className="text-sm text-gray-500 mt-2">
-                    {template.description}
-                  </p>
-                )}
               </div>
             </div>
           ))}

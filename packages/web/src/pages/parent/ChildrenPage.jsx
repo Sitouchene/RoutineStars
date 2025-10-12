@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, User } from 'lucide-react';
+import { Plus, Edit, Trash2, User, Bell } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { childrenApi } from '../../lib/api-client';
 import AddChildModal from '../../components/parent/AddChildModal';
+import { seedToAvatarUrl } from '../../utils/avatarUtils';
 import EditChildModal from '../../components/parent/EditChildModal';
 
 export default function ChildrenPage() {
@@ -104,13 +105,14 @@ export default function ChildrenPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {children.map(child => (
-            <div key={child.id} className="card">
-              <div className="flex items-start justify-between mb-4">
+            <div key={child.id} className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-purple-500">
+              {/* Ligne principale : Avatar + Nom + Notifications */}
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xl">
                     {child.avatar ? (
                       <img
-                        src={child.avatar}
+                        src={seedToAvatarUrl(child.avatar) || child.avatar}
                         alt={child.name}
                         className="w-12 h-12 rounded-full object-cover"
                       />
@@ -119,31 +121,50 @@ export default function ChildrenPage() {
                     )}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">{child.name}</h3>
-                    <p className="text-gray-500">{child.age} ans</p>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {child.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {child.age} ans
+                    </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                
+                {/* Notifications */}
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-gray-400" />
+                  <span className="text-xs text-gray-500">0 notifications</span>
+                  <Bell className="w-4 h-4 text-gray-400" />
+                </div>
+              </div>
+
+              {/* Ligne de séparation */}
+              <div className="border-t border-gray-200 mb-3"></div>
+
+              {/* Ligne inférieure : Date + Actions */}
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Ajouté le {new Date(child.createdAt).toLocaleDateString('fr-FR')}
+                </div>
+                
+                {/* Boutons d'action */}
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setEditingChild(child)}
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     title="Modifier"
                   >
                     <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(child.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Supprimer"
                     disabled={deleteChildMutation.isPending}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
-
-              <div className="text-sm text-gray-500">
-                Ajouté le {new Date(child.createdAt).toLocaleDateString('fr-FR')}
               </div>
             </div>
           ))}

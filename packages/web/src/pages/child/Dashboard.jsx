@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, CheckCircle, Circle, Star, Send, BarChart3 } from 'lucide-react';
+import { LogOut, CheckCircle, Circle, Star, Send, BarChart3, Edit3 } from 'lucide-react';
 import { TASK_ICONS, TASK_CATEGORIES } from 'shared/constants';
-import { tasksApi, submissionsApi, messagesApi, evalWindowApi } from '../../lib/api-client';
+import { tasksApi, submissionsApi, messagesApi, evalWindowApi, childrenApi } from '../../lib/api-client';
 import TaskCard from '../../components/child/TaskCard';
+import AvatarSelector from '../../components/child/AvatarSelector';
+import { seedToAvatarUrl } from '../../utils/avatarUtils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ChildDashboard() {
   const user = useAuthStore(state => state.user);
@@ -16,6 +19,7 @@ export default function ChildDashboard() {
   
   // État local pour forcer la désactivation après soumission
   const [isLocallySubmitted, setIsLocallySubmitted] = useState(false);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const todayKey = new Date().toISOString().split('T')[0];
 
   // Récupérer les soumissions de l'enfant
@@ -175,14 +179,46 @@ export default function ChildDashboard() {
 
   const canSubmit = allTasksEvaluated && !submitDayMutation.isPending && !isDaySubmitted && !hasSubmittedTasks && isWithinWindow;
 
+  // Mutation pour mettre à jour l'avatar
+  const updateAvatarMutation = useMutation({
+    mutationFn: (avatar) => childrenApi.updateAvatar(user.id, avatar, getAuthHeader()),
+    onSuccess: (updatedUser) => {
+      // Mettre à jour l'utilisateur dans le store
+      useAuthStore.getState().login(updatedUser, useAuthStore.getState().token);
+      queryClient.invalidateQueries({ queryKey: ['childSubmissions', user?.id] });
+    },
+  });
+
+  const handleAvatarChange = (newAvatar) => {
+    updateAvatarMutation.mutate(newAvatar);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-400 to-purple-500 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl p-6 mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-3xl">
-              👦
+            <div className="relative group">
+              <button
+                onClick={() => setShowAvatarSelector(true)}
+                className="w-16 h-16 rounded-full overflow-hidden border-4 border-gray-200 hover:border-primary-300 transition-all duration-200 group-hover:scale-105"
+              >
+                {user?.avatar ? (
+                  <img
+                    src={seedToAvatarUrl(user.avatar) || user.avatar}
+                    alt={`Avatar de ${user.name}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-3xl">
+                    👦
+                  </div>
+                )}
+              </button>
+              <div className="absolute -bottom-1 -right-1 bg-primary-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Edit3 className="w-3 h-3 text-white" />
+              </div>
             </div>
             <div>
               <h1 className="text-2xl font-bold">Bonjour {user?.name} !</h1>
@@ -283,7 +319,18 @@ export default function ChildDashboard() {
 
         {/* Tâches du jour */}
         <div className="bg-white rounded-2xl p-6">
-          <h2 className="text-xl font-bold mb-6">Mes tâches du jour</h2>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex items-center justify-between mb-6"
+          >
+            <h2 className="text-xl font-bold text-gray-900">Mes tâches du jour</h2>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Circle className="w-4 h-4" />
+              {tasks.length} tâche{tasks.length > 1 ? 's' : ''}
+            </div>
+          </motion.div>
           
           {isLoading ? (
             <div className="text-center py-12">
@@ -307,26 +354,51 @@ export default function ChildDashboard() {
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {tasks.map(task => (
-                <TaskCard
-                  key={task.id}
-                  task={{
-                    ...task,
-                    title: task.taskTemplate?.title || task.title,
-                    category: task.taskTemplate?.category || task.category,
-                    points: task.taskTemplate?.points || task.points,
-                  }}
-                  onSelfEvaluate={handleSelfEvaluate}
-                  getCategoryIcon={getCategoryIcon}
-                  getScoreColor={getScoreColor}
-                  isDaySubmitted={isDaySubmitted}
-                />
-              ))}
-            </div>
+            <motion.div 
+              className="grid grid-cols-3 md:grid-cols-4 gap-4"
+              layout
+            >
+              <AnimatePresence>
+                {tasks.map((task, index) => (
+                  <motion.div
+                    key={task.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <TaskCard
+                      task={{
+                        ...task,
+                        title: task.taskTemplate?.title || task.title,
+                        category: task.taskTemplate?.category || task.category,
+                        points: task.taskTemplate?.points || task.points,
+                        description: task.taskTemplate?.description || task.description,
+                        recurrence: task.taskTemplate?.recurrence || task.recurrence,
+                      }}
+                      onSelfEvaluate={handleSelfEvaluate}
+                      getCategoryIcon={getCategoryIcon}
+                      getScoreColor={getScoreColor}
+                      isDaySubmitted={isDaySubmitted}
+                      isWithinEvaluationWindow={isWithinWindow}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           )}
         </div>
       </div>
+
+      {/* Sélecteur d'avatar */}
+      {showAvatarSelector && (
+        <AvatarSelector
+          currentAvatar={user?.avatar}
+          onAvatarChange={handleAvatarChange}
+          onClose={() => setShowAvatarSelector(false)}
+        />
+      )}
     </div>
   );
 }
