@@ -38,11 +38,11 @@ export async function getChildSubmissionsController(req, res, next) {
 /**
  * GET /api/submissions/family
  */
-export async function getFamilySubmissionsController(req, res, next) {
+export async function getGroupSubmissionsController(req, res, next) {
   try {
     const { limit } = req.query;
-    const submissions = await submissionsService.getFamilySubmissions(
-      req.user.familyId,
+    const submissions = await submissionsService.getGroupSubmissions(
+      req.user.groupId,
       limit ? parseInt(limit) : 30
     );
     res.json(submissions);
@@ -59,7 +59,7 @@ export async function validateSubmissionController(req, res, next) {
     const validatedData = validateSubmissionSchema.parse(req.body);
     const submission = await submissionsService.validateSubmission(
       req.params.id,
-      req.user.familyId,
+      req.user.groupId,
       validatedData.parentComment
     );
     res.json(submission);
@@ -75,7 +75,7 @@ export async function getSubmissionDetailsController(req, res, next) {
   try {
     const details = await submissionsService.getSubmissionDetails(
       req.params.id,
-      req.user.familyId
+      req.user.groupId
     );
     res.json(details);
   } catch (error) {

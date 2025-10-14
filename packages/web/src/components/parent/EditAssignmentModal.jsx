@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Calendar, Play, Pause } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
@@ -7,11 +8,16 @@ import { assignmentsApi } from '../../lib/api-client';
 export default function EditAssignmentModal({ assignment, onClose, onSuccess }) {
   const { getAuthHeader, user } = useAuthStore();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   
   const [formData, setFormData] = useState({
     startDate: '',
     endDate: '',
     isActive: true,
+    recurrence: '',
+    recurrenceDays: [],
+    recurrenceStartDate: '',
+    recurrenceInterval: 2,
   });
   const [error, setError] = useState('');
 
@@ -21,6 +27,10 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
         startDate: assignment.startDate.split('T')[0],
         endDate: assignment.endDate.split('T')[0],
         isActive: assignment.isActive,
+        recurrence: assignment.recurrence || '',
+        recurrenceDays: assignment.recurrenceDays ? assignment.recurrenceDays.split(',').map(s=>parseInt(s,10)) : [],
+        recurrenceStartDate: assignment.recurrenceStartDate ? assignment.recurrenceStartDate.split('T')[0] : '',
+        recurrenceInterval: assignment.recurrenceInterval || 2,
       });
     }
   }, [assignment]);
@@ -49,6 +59,10 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
       startDate: formData.startDate,
       endDate: formData.endDate,
       isActive: formData.isActive,
+      recurrence: formData.recurrence || undefined,
+      recurrenceDays: formData.recurrence === 'weekly_days' ? formData.recurrenceDays : undefined,
+      recurrenceStartDate: formData.recurrence === 'every_n_days' ? formData.recurrenceStartDate : undefined,
+      recurrenceInterval: formData.recurrence === 'every_n_days' ? Number(formData.recurrenceInterval) : undefined,
     };
 
     updateAssignmentMutation.mutate(updateData);
@@ -69,9 +83,9 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Modifier l'assignation</h3>
+            <h3 className="text-xl font-bold text-gray-900">{t('common.edit')} {t('assignments.task')}</h3>
             <p className="text-gray-600 mt-1">
-              Modifier les paramètres de l'assignation
+              {t('assignments.manage.subtitle')}
             </p>
           </div>
           <button
@@ -82,6 +96,69 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
           </button>
         </div>
 
+        {/* Récurrence spécifique à l'assignation (optionnelle) */}
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700">{t('tasks.recurrence')} ({t('common.optional')})</label>
+          <select
+            name="recurrence"
+            value={formData.recurrence}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          >
+            <option value="">{t('tasks.recurrence.custom')}</option>
+            <option value="weekly_days">{t('tasks.recurrence.weekly_days_label')}</option>
+            <option value="every_n_days">{t('tasks.recurrence.every_n_days_label')}</option>
+          </select>
+
+          {formData.recurrence === 'weekly_days' && (
+            <div className="flex flex-wrap gap-2">
+              {[0,1,2,3,4,5,6].map(d => (
+                <label key={d} className={`px-3 py-1 rounded-full border cursor-pointer text-sm ${formData.recurrenceDays.includes(d) ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-gray-300 text-gray-700'}`}>
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={formData.recurrenceDays.includes(d)}
+                    onChange={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        recurrenceDays: prev.recurrenceDays.includes(d)
+                          ? prev.recurrenceDays.filter(x => x !== d)
+                          : [...prev.recurrenceDays, d]
+                      }));
+                    }}
+                  />
+                  {['D','L','M','M','J','V','S'][d]}
+                </label>
+              ))}
+            </div>
+          )}
+
+          {formData.recurrence === 'every_n_days' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('assignModal.startDate')}</label>
+                <input
+                  type="date"
+                  name="recurrenceStartDate"
+                  value={formData.recurrenceStartDate}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('tasks.recurrence.every_n_days_label')}</label>
+                <input
+                  type="number"
+                  name="recurrenceInterval"
+                  min={1}
+                  value={formData.recurrenceInterval}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          )}
+        </div>
         {/* Informations de l'assignation */}
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-3">
@@ -89,7 +166,7 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
             <div>
               <h4 className="font-semibold text-gray-900">{assignment.taskTemplate?.title}</h4>
               <p className="text-sm text-gray-600">
-                Assigné à {assignment.child?.name} • {assignment.taskTemplate?.points} points
+                {assignment.child?.name} • {assignment.taskTemplate?.points} {t('tasks.pointsSuffix')}
               </p>
             </div>
           </div>
@@ -100,7 +177,7 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date de début
+                {t('assignModal.startDate')}
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -117,7 +194,7 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date de fin
+                {t('assignModal.endDate')}
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -150,7 +227,7 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
                   <Pause className="w-4 h-4 text-gray-400" />
                 )}
                 <span className="text-sm font-medium text-gray-700">
-                  Assignation active (génération automatique des tâches quotidiennes)
+                  {t('assignModal.activateNow')}
                 </span>
               </div>
             </label>
@@ -168,14 +245,14 @@ export default function EditAssignmentModal({ assignment, onClose, onSuccess }) 
               onClick={onClose}
               className="flex-1 py-3 px-4 rounded-lg text-gray-600 hover:text-gray-800 transition-colors"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="flex-1 btn btn-primary"
               disabled={updateAssignmentMutation.isPending}
             >
-              {updateAssignmentMutation.isPending ? 'Modification...' : 'Modifier l\'assignation'}
+              {updateAssignmentMutation.isPending ? t('common.loading') : t('common.edit')}
             </button>
           </div>
         </form>

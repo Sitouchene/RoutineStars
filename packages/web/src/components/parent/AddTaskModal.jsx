@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, BookOpen, Plus, Lock } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../stores/authStore';
@@ -7,6 +8,7 @@ import { TASK_RECURRENCE } from 'shared/constants';
 import TemplateTaskSelector from './TemplateTaskSelector';
 
 export default function AddTaskModal({ onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     title: '',
     categoryId: '', // Utiliser categoryId au lieu de category
@@ -21,9 +23,9 @@ export default function AddTaskModal({ onClose, onSuccess }) {
 
   // Récupérer les catégories disponibles
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
-    queryKey: ['categories', user?.familyId],
+    queryKey: ['categories', user?.groupId],
     queryFn: () => categoriesApi.getAll(getAuthHeader()),
-    enabled: !!user?.familyId,
+    enabled: !!user?.groupId,
   });
 
   // Séparer les catégories système et personnalisées (actives uniquement)
@@ -82,7 +84,10 @@ export default function AddTaskModal({ onClose, onSuccess }) {
       return;
     }
 
-    addTaskMutation.mutate(formData);
+    addTaskMutation.mutate({
+      ...formData,
+      points: Number(formData.points),
+    });
   };
 
   const getCategoryIcon = categoryId => {
@@ -96,7 +101,7 @@ export default function AddTaskModal({ onClose, onSuccess }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-gray-900">
-            Créer une tâche
+            {t('tasks.add')}
           </h3>
           <button
             onClick={onClose}
@@ -110,7 +115,7 @@ export default function AddTaskModal({ onClose, onSuccess }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Titre de la tâche *
+              {t('tasks.template')} *
             </label>
             <input
               type="text"
@@ -118,14 +123,14 @@ export default function AddTaskModal({ onClose, onSuccess }) {
               value={formData.title}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Ex: Ranger ma chambre"
+              placeholder={t('tasks.titlePlaceholder')}
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Catégorie *
+              {t('tasks.category')} *
             </label>
             <select
               name="categoryId"
@@ -134,9 +139,9 @@ export default function AddTaskModal({ onClose, onSuccess }) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               required
             >
-              <option value="">Sélectionner une catégorie</option>
+              <option value="">{t('categories.selectPlaceholder')}</option>
               {categoriesLoading ? (
-                <option disabled>Chargement des catégories...</option>
+                <option disabled>{t('common.loading')}</option>
               ) : (
                 <>
                   {/* Catégories système */}
@@ -158,7 +163,7 @@ export default function AddTaskModal({ onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Icône (optionnel)
+              {t('tasks.icon')} ({t('common.optional')})
             </label>
             <input
               type="text"
@@ -166,16 +171,16 @@ export default function AddTaskModal({ onClose, onSuccess }) {
               value={formData.icon}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Ex: 🧹 (ou laisser vide pour l'icône par défaut)"
+              placeholder={t('tasks.iconPlaceholder')}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Icône par défaut : {getCategoryIcon(formData.categoryId)}
+              {t('common.default')} : {getCategoryIcon(formData.categoryId)}
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Points (1-100) *
+              {t('tasks.points')} (1-100) *
             </label>
             <input
               type="number"
@@ -191,7 +196,7 @@ export default function AddTaskModal({ onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Récurrence *
+              {t('tasks.recurrence')} *
             </label>
             <select
               name="recurrence"
@@ -199,9 +204,9 @@ export default function AddTaskModal({ onClose, onSuccess }) {
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
-              <option value={TASK_RECURRENCE.DAILY}>Tous les jours</option>
-              <option value={TASK_RECURRENCE.WEEKDAY}>Jours de semaine</option>
-              <option value={TASK_RECURRENCE.WEEKEND}>Weekend</option>
+              <option value={TASK_RECURRENCE.DAILY}>{t('tasks.recurrence.daily')}</option>
+              <option value={TASK_RECURRENCE.WEEKDAY}>{t('tasks.recurrence.weekday')}</option>
+              <option value={TASK_RECURRENCE.WEEKEND}>{t('tasks.recurrence.weekend')}</option>
               <option value={TASK_RECURRENCE.MONDAY}>Lundi</option>
               <option value={TASK_RECURRENCE.TUESDAY}>Mardi</option>
               <option value={TASK_RECURRENCE.WEDNESDAY}>Mercredi</option>
@@ -209,12 +214,15 @@ export default function AddTaskModal({ onClose, onSuccess }) {
               <option value={TASK_RECURRENCE.FRIDAY}>Vendredi</option>
               <option value={TASK_RECURRENCE.SATURDAY}>Samedi</option>
               <option value={TASK_RECURRENCE.SUNDAY}>Dimanche</option>
+              {/* Nouvelles récurrences (paramétrées côté assignation) */}
+              <option value="weekly_days">{t('tasks.recurrence.weekly_days_label')}</option>
+              <option value="every_n_days">{t('tasks.recurrence.every_n_days_label')}</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description (optionnel)
+              {t('tasks.description.label')} ({t('common.optional')})
             </label>
             <textarea
               name="description"
@@ -222,7 +230,7 @@ export default function AddTaskModal({ onClose, onSuccess }) {
               onChange={handleChange}
               rows="3"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Description détaillée de la tâche..."
+              placeholder={t('tasks.description.placeholder')}
             />
         </div>
 
@@ -233,7 +241,7 @@ export default function AddTaskModal({ onClose, onSuccess }) {
             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 border-2 border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-colors"
           >
             <BookOpen className="w-5 h-5 text-blue-600" />
-            <span className="font-medium text-blue-700">Choisir depuis la bibliothèque</span>
+            <span className="font-medium text-blue-700">{t('tasks.chooseFromLibrary')}</span>
           </button>
         </div>
 
@@ -251,14 +259,14 @@ export default function AddTaskModal({ onClose, onSuccess }) {
               className="flex-1 btn btn-secondary"
               disabled={addTaskMutation.isPending}
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="flex-1 btn btn-primary"
               disabled={addTaskMutation.isPending}
             >
-              {addTaskMutation.isPending ? 'Création...' : 'Créer la tâche'}
+              {addTaskMutation.isPending ? t('common.loading') : t('tasks.add')}
             </button>
           </div>
         </form>

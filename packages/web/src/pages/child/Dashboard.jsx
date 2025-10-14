@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, CheckCircle, Circle, Star, Send, BarChart3, Edit3 } from 'lucide-react';
@@ -11,6 +12,7 @@ import { seedToAvatarUrl } from '../../utils/avatarUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ChildDashboard() {
+  const { t } = useTranslation();
   const user = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
   const getAuthHeader = useAuthStore(state => state.getAuthHeader);
@@ -48,16 +50,16 @@ export default function ChildDashboard() {
 
   // Message du jour
   const { data: dailyMessage } = useQuery({
-    queryKey: ['dailyMessage', user?.familyId, user?.id, todayKey],
+    queryKey: ['dailyMessage', user?.groupId, user?.id, todayKey],
     queryFn: () => messagesApi.getByDate(getAuthHeader(), { childId: user.id, date: todayKey }),
-    enabled: !!user?.id && !!user?.familyId,
+    enabled: !!user?.id && !!user?.groupId,
   });
 
   // Fenêtre horaire
   const { data: evalWindow } = useQuery({
-    queryKey: ['evalWindow', user?.familyId, user?.id],
+    queryKey: ['evalWindow', user?.groupId, user?.id],
     queryFn: () => evalWindowApi.get(getAuthHeader(), { childId: user.id }),
-    enabled: !!user?.id && !!user?.familyId,
+    enabled: !!user?.id && !!user?.groupId,
   });
 
   // Mutation pour l'autoévaluation
@@ -107,16 +109,16 @@ export default function ChildDashboard() {
         }));
       });
       
-      alert('Journée soumise avec succès ! 🎉');
+      alert(t('child.daySubmitted'));
     },
     onError: (error) => {
-      alert(`Erreur: ${error.message}`);
+      alert(`${t('common.error')}: ${error.message}`);
     },
   });
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const handleSelfEvaluate = async (taskId, score) => {
@@ -136,7 +138,9 @@ export default function ChildDashboard() {
   };
 
   const getCategoryIcon = category => {
-    return TASK_ICONS[category] || '📋';
+    // Gérer les objets Category ou les chaînes
+    const categoryKey = typeof category === 'object' ? category?.title : category;
+    return TASK_ICONS[categoryKey] || category?.icon || '📋';
   };
 
   const getScoreColor = score => {
@@ -221,7 +225,7 @@ export default function ChildDashboard() {
               </div>
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Bonjour {user?.name} !</h1>
+              <h1 className="text-2xl font-bold">{t('child.hello', { name: user?.name })}</h1>
               <p className="text-gray-600">{new Date().toLocaleString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
               {dailyMessage?.message && (
                 <p className="mt-1 text-sm text-primary-700 bg-primary-50 px-3 py-1 rounded-lg inline-block">{dailyMessage.message}</p>
@@ -234,7 +238,7 @@ export default function ChildDashboard() {
               className="p-3 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600 hover:text-primary-600"
             >
               <BarChart3 className="w-5 h-5" />
-              <span className="text-sm font-medium">Mes stats</span>
+              <span className="text-sm font-medium">{t('child.myStats')}</span>
             </button>
             <button
               onClick={handleLogout}
@@ -247,15 +251,15 @@ export default function ChildDashboard() {
 
         {/* Score du jour */}
         <div className="bg-white rounded-2xl p-8 text-center mb-6">
-          <p className="text-gray-600 mb-2">Mon score d'aujourd'hui</p>
+          <p className="text-gray-600 mb-2">{t('child.todayScore')}</p>
           <p className="text-6xl font-bold text-primary-600">{completionRate}%</p>
           <p className="text-gray-500 mt-2">
-            {completionRate >= 80 ? 'Excellent ! 🌟' : 
-             completionRate >= 60 ? 'Bien joué ! 👍' : 
-             'Continue tes efforts ! 💪'}
+            {completionRate >= 80 ? t('child.excellent') : 
+             completionRate >= 60 ? t('child.wellDone') : 
+             t('child.keepGoing')}
           </p>
           <div className="mt-4 text-sm text-gray-500">
-            {completedTasks}/{totalTasks} tâches terminées
+            {t('child.tasksCompleted', { completed: completedTasks, total: totalTasks })}
           </div>
         </div>
 
@@ -267,31 +271,31 @@ export default function ChildDashboard() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Journée soumise ! 🎉</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('child.daySubmitted')}</h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Votre journée a été soumise le {new Date(todaySubmission.submittedAt).toLocaleString('fr-FR')}
+                  {t('child.submittedOn', { date: new Date(todaySubmission.submittedAt).toLocaleString('fr-FR') })}
                 </p>
                 {todaySubmission.validatedAt ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-sm font-medium text-green-800 mb-2">✅ Validée par papa/maman</p>
+                    <p className="text-sm font-medium text-green-800 mb-2">{t('child.validatedByParent')}</p>
                     {todaySubmission.parentComment && (
                       <p className="text-sm text-green-700 italic">"{todaySubmission.parentComment}"</p>
                     )}
                   </div>
                 ) : (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <p className="text-sm font-medium text-yellow-800">⏳ En attente de validation par papa/maman</p>
+                    <p className="text-sm font-medium text-yellow-800">{t('child.waitingValidation')}</p>
                   </div>
                 )}
               </div>
             ) : (
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Soumettre ma journée</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('child.submitDay')}</h3>
                   <p className="text-sm text-gray-600">
                     {allTasksEvaluated 
-                      ? 'Toutes vos tâches sont évaluées ! Vous pouvez soumettre.' 
-                      : `${tasks.filter(task => task.selfScore === null || task.selfScore === undefined).length} tâche(s) restante(s) à évaluer.`
+                      ? t('child.submitDayDesc')
+                      : t('child.tasksRemaining', { count: tasks.filter(task => task.selfScore === null || task.selfScore === undefined).length })
                     }
                   </p>
                 </div>
@@ -306,10 +310,10 @@ export default function ChildDashboard() {
                 >
                   <Send className="w-5 h-5" />
                   {isDaySubmitted 
-                    ? 'Journée déjà soumise' 
+                    ? t('child.dayAlreadySubmitted')
                     : submitDayMutation.isPending 
-                      ? 'Soumission...' 
-                      : 'Soumettre ma journée'
+                      ? t('child.submitting')
+                      : t('child.submitDay')
                   }
                 </button>
               </div>
@@ -325,32 +329,32 @@ export default function ChildDashboard() {
             transition={{ delay: 0.3 }}
             className="flex items-center justify-between mb-6"
           >
-            <h2 className="text-xl font-bold text-gray-900">Mes tâches du jour</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('child.myTasks')}</h2>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Circle className="w-4 h-4" />
-              {tasks.length} tâche{tasks.length > 1 ? 's' : ''}
+              {t('child.tasksCount', { count: tasks.length })}
             </div>
           </motion.div>
           
           {isLoading ? (
             <div className="text-center py-12">
-              <div className="text-gray-500">Chargement des tâches...</div>
+              <div className="text-gray-500">{t('child.loadingTasks')}</div>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <div className="text-red-600 mb-4">Erreur lors du chargement des tâches</div>
+              <div className="text-red-600 mb-4">{t('child.errorLoadingTasks')}</div>
               <button
                 onClick={() => queryClient.invalidateQueries({ queryKey: ['childTasks'] })}
                 className="btn btn-primary"
               >
-                Réessayer
+                {t('child.retry')}
               </button>
             </div>
           ) : tasks.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-gray-500 mb-4">Aucune tâche pour aujourd'hui</div>
+              <div className="text-gray-500 mb-4">{t('child.noTasksToday')}</div>
               <p className="text-sm text-gray-400">
-                Demandez à papa/maman de vous assigner des tâches !
+                {t('child.noTasksDesc')}
               </p>
             </div>
           ) : (

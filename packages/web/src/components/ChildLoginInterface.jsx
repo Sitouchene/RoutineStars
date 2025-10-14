@@ -108,7 +108,7 @@ export default function ChildLoginInterface() {
         pin: pin,
       });
       
-      login(user, token);
+      login(token, user);
       navigate('/child');
     } catch (err) {
       setError('Code PIN incorrect');

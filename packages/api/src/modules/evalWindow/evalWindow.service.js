@@ -1,19 +1,19 @@
 import prisma from '../../config/database.js';
 
-export async function getWindow(familyId, childId) {
-  // Priorité à la règle spécifique enfant, sinon règle famille
-  const childWin = childId ? await prisma.evaluationWindow.findFirst({ where: { familyId, childId } }) : null;
+export async function getWindow(groupId, childId) {
+  // Priorité à la règle spécifique enfant, sinon règle groupe
+  const childWin = childId ? await prisma.evaluationWindow.findFirst({ where: { groupId, childId } }) : null;
   if (childWin) return childWin;
-  return prisma.evaluationWindow.findFirst({ where: { familyId, childId: null } });
+  return prisma.evaluationWindow.findFirst({ where: { groupId, childId: null } });
 }
 
-export async function upsertWindow(familyId, payload) {
+export async function upsertWindow(groupId, payload) {
   const { childId = null, startTime, endTime, daysMask, timezone } = payload;
-  const existing = await prisma.evaluationWindow.findFirst({ where: { familyId, childId } });
+  const existing = await prisma.evaluationWindow.findFirst({ where: { groupId, childId } });
   if (existing) {
     return prisma.evaluationWindow.update({ where: { id: existing.id }, data: { startTime, endTime, daysMask, timezone } });
   }
-  return prisma.evaluationWindow.create({ data: { familyId, childId, startTime, endTime, daysMask, timezone } });
+  return prisma.evaluationWindow.create({ data: { groupId, childId, startTime, endTime, daysMask, timezone } });
 }
 
 export function isWithinWindow(window, now = new Date()) {

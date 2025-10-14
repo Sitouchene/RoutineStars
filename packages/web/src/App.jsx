@@ -1,65 +1,74 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './stores/authStore';
 
 // Pages
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import WelcomeScreen from './pages/WelcomeScreen';
+import LoginScreen from './pages/LoginScreen';
+import RegisterScreen from './pages/RegisterScreen';
+import ChildLoginScreen from './pages/ChildLoginScreen';
 import ParentDashboard from './pages/parent/Dashboard';
 import ChildRouter from './pages/child/Router';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   const { user, isAuthenticated } = useAuthStore();
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Routes publiques */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          {/* Écran de bienvenue */}
+          <Route path="/" element={<WelcomeScreen />} />
+          
+          {/* Authentification Parent/Enseignant */}
+          <Route path="/auth/login" element={<LoginScreen />} />
+          <Route path="/auth/register" element={<RegisterScreen />} />
+          
+          {/* Authentification Enfant/Élève */}
+          <Route path="/auth/child" element={<ChildLoginScreen />} />
 
-        {/* Routes protégées */}
-        <Route
-          path="/parent/*"
-          element={
-            isAuthenticated && user?.role === 'parent' ? (
-              <ParentDashboard />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-
-        <Route
-          path="/child/*"
-          element={
-            isAuthenticated && user?.role === 'child' ? (
-              <ChildRouter />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-
-        {/* Redirection par défaut */}
-        <Route
-          path="/"
-          element={
-            isAuthenticated ? (
-              user?.role === 'parent' ? (
-                <Navigate to="/parent" replace />
+          {/* Routes protégées - Parent/Enseignant */}
+          <Route
+            path="/parent/*"
+            element={
+              isAuthenticated && (user?.role === 'parent' || user?.role === 'teacher') ? (
+                <ParentDashboard />
               ) : (
-                <Navigate to="/child" replace />
+                <Navigate to="/" replace />
               )
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+            }
+          />
+
+          {/* Routes protégées - Enfant/Élève */}
+          <Route
+            path="/child/*"
+            element={
+              isAuthenticated && (user?.role === 'child' || user?.role === 'student') ? (
+                <ChildRouter />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+
+          {/* Redirection par défaut */}
+          <Route
+            path="*"
+            element={<Navigate to="/" replace />}
+          />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
 export default App;
-
-

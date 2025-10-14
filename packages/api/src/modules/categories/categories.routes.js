@@ -3,7 +3,7 @@ import { authenticate } from '../../middlewares/auth.middleware.js';
 import {
   getCategoriesController,
   getCommonCategoriesController,
-  getFamilyCategoriesController,
+  getGroupCategoriesController,
   createCategoryController,
   updateCategoryController,
   deleteCategoryController,
@@ -21,8 +21,8 @@ router.get('/', getCategoriesController);
 // GET /api/categories/common - Récupérer uniquement les catégories communes
 router.get('/common', getCommonCategoriesController);
 
-// GET /api/categories/family - Récupérer uniquement les catégories de la famille
-router.get('/family', getFamilyCategoriesController);
+// GET /api/categories/group - Récupérer uniquement les catégories du groupe
+router.get('/group', getGroupCategoriesController);
 
 // POST /api/categories - Créer une nouvelle catégorie
 router.post('/', createCategoryController);

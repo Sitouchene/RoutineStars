@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../stores/authStore';
 import { childrenApi } from '../../lib/api-client';
 
 export default function EditChildModal({ child, onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -47,17 +49,17 @@ export default function EditChildModal({ child, onClose, onSuccess }) {
 
     // Validation
     if (formData.pin && formData.pin !== formData.confirmPin) {
-      setError('Les codes PIN ne correspondent pas');
+      setError(t('auth.passwordMismatch'));
       return;
     }
 
     if (formData.pin && (formData.pin.length !== 4 || !/^\d{4}$/.test(formData.pin))) {
-      setError('Le code PIN doit contenir exactement 4 chiffres');
+      setError(t('child.pin') + ' (4)');
       return;
     }
 
     if (formData.age < 3 || formData.age > 18) {
-      setError('L\'âge doit être entre 3 et 18 ans');
+      setError(t('common.error'));
       return;
     }
 
@@ -81,7 +83,7 @@ export default function EditChildModal({ child, onClose, onSuccess }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-gray-900">
-            Modifier {child.name}
+            {t('common.edit')} {child.name}
           </h3>
           <button
             onClick={onClose}
@@ -95,7 +97,7 @@ export default function EditChildModal({ child, onClose, onSuccess }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Prénom *
+              {t('auth.name')} *
             </label>
             <input
               type="text"
@@ -109,7 +111,7 @@ export default function EditChildModal({ child, onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Âge *
+              {t('children.ageLabel') || 'Âge (ans)'} *
             </label>
             <input
               type="number"
@@ -125,7 +127,7 @@ export default function EditChildModal({ child, onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nouveau code PIN (optionnel)
+              {t('child.pinNewLabel')}
             </label>
             <input
               type="password"
@@ -134,17 +136,17 @@ export default function EditChildModal({ child, onClose, onSuccess }) {
               onChange={handleChange}
               maxLength="4"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="Laisser vide pour ne pas changer"
+              placeholder={t('child.pinEditPlaceholder')}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Laissez vide pour conserver le code PIN actuel
+              {t('child.pinNewHelp')}
             </p>
           </div>
 
           {formData.pin && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Confirmer le nouveau code PIN
+                {t('auth.confirmPassword')}
               </label>
               <input
                 type="password"
@@ -153,7 +155,7 @@ export default function EditChildModal({ child, onClose, onSuccess }) {
                 onChange={handleChange}
                 maxLength="4"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Répétez le nouveau code PIN"
+                placeholder={t('auth.confirmPassword')}
               />
             </div>
           )}
@@ -172,14 +174,14 @@ export default function EditChildModal({ child, onClose, onSuccess }) {
               className="flex-1 btn btn-secondary"
               disabled={updateChildMutation.isPending}
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="flex-1 btn btn-primary"
               disabled={updateChildMutation.isPending}
             >
-              {updateChildMutation.isPending ? 'Modification...' : 'Modifier'}
+              {updateChildMutation.isPending ? t('common.loading') : t('common.edit')}
             </button>
           </div>
         </form>

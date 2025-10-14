@@ -1,15 +1,15 @@
 import { Router } from 'express';
 import { getWindowController, upsertWindowController } from './evalWindow.controller.js';
-import { authenticate, requireParent } from '../../middlewares/auth.middleware.js';
+import { authenticate, requireParentOrTeacher } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
 
 router.use(authenticate);
 
-// GET pour lecture (parent ou enfant)
+// GET pour lecture (tous les utilisateurs authentifiés)
 router.get('/', getWindowController);
-// Modification réservée au parent
-router.put('/', requireParent, upsertWindowController);
+// Modification réservée aux parents et enseignants
+router.put('/', requireParentOrTeacher, upsertWindowController);
 
 export default router;
 

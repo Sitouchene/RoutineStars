@@ -135,8 +135,9 @@ export const assignmentsApi = {
   update: (id, data, headers) => apiClient.put(`/assignments/${id}`, data, { headers }),
   delete: (id, headers) => apiClient.delete(`/assignments/${id}`, { headers }),
   
-  // Assignations de la famille
-  getFamilyAssignments: headers => apiClient.get('/assignments', { headers }),
+  // Assignations du groupe (famille ou classe)
+  getGroupAssignments: headers => apiClient.get('/assignments', { headers }),
+  getFamilyAssignments: headers => apiClient.get('/assignments', { headers }), // Alias pour compatibilité
   
   // Assignations d'un enfant
   getChildAssignments: (childId, headers) => 
@@ -153,7 +154,8 @@ export const submissionsApi = {
   getChildSubmissions: headers => apiClient.get('/submissions/child', { headers }),
   
   // Validation parentale
-  getFamilySubmissions: headers => apiClient.get('/submissions/family', { headers }),
+  getGroupSubmissions: headers => apiClient.get('/submissions/group', { headers }),
+  getFamilySubmissions: headers => apiClient.get('/submissions/group', { headers }), // Alias pour compatibilité
   validateSubmission: (submissionId, parentComment, headers) => 
     apiClient.post(`/submissions/${submissionId}/validate`, { parentComment }, { headers }),
   getSubmissionDetails: (submissionId, headers) => 

@@ -3,13 +3,13 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const categoriesService = {
-  // Récupérer toutes les catégories disponibles pour une famille (actives et inactives)
-  async getCategoriesByFamily(familyId) {
+  // Récupérer toutes les catégories disponibles pour un groupe (actives et inactives)
+  async getCategoriesByGroup(groupId) {
     const categories = await prisma.category.findMany({
       where: {
         OR: [
           { isSystem: true }, // Catégories système
-          { familyId: familyId, isSystem: false } // Catégories personnalisées de la famille
+          { groupId: groupId, isSystem: false } // Catégories personnalisées du groupe
         ]
         // Suppression du filtre isActive: true pour récupérer toutes les catégories
       },
@@ -37,11 +37,11 @@ export const categoriesService = {
     });
   },
 
-  // Récupérer uniquement les catégories personnalisées d'une famille (actives et inactives)
-  async getFamilyCategories(familyId) {
+  // Récupérer uniquement les catégories personnalisées d'un groupe (actives et inactives)
+  async getGroupCategories(groupId) {
     return await prisma.category.findMany({
       where: {
-        familyId: familyId,
+        groupId: groupId,
         isSystem: false
         // Suppression du filtre isActive: true
       },
@@ -53,34 +53,35 @@ export const categoriesService = {
   },
 
   // Créer une nouvelle catégorie
-  async createCategory(familyId, categoryData) {
-    // Vérifier que le titre n'existe pas déjà (système ou famille)
+  async createCategory(groupId, categoryData) {
+    // Vérifier que le titre n'existe pas déjà dans ce groupe
     const existingCategory = await prisma.category.findFirst({
       where: {
+        groupId: groupId,
         title: categoryData.title
       }
     });
 
     if (existingCategory) {
-      throw new Error('Une catégorie avec ce titre existe déjà');
+      throw new Error('Une catégorie avec ce titre existe déjà dans ce groupe');
     }
 
     return await prisma.category.create({
       data: {
         ...categoryData,
-        familyId: familyId, // Obligatoire pour les catégories personnalisées
-        isSystem: false // Toujours false pour les catégories créées par les familles
+        groupId: groupId, // Obligatoire pour les catégories personnalisées
+        isSystem: false // Toujours false pour les catégories créées par les groupes
       }
     });
   },
 
   // Mettre à jour une catégorie
-  async updateCategory(categoryId, familyId, updateData) {
+  async updateCategory(categoryId, groupId, updateData) {
     // Vérifier que la catégorie appartient à la famille et n'est pas système
     const category = await prisma.category.findFirst({
       where: {
         id: categoryId,
-        familyId: familyId,
+        groupId: groupId,
         isSystem: false // Seules les catégories personnalisées peuvent être modifiées
       }
     });
@@ -89,17 +90,18 @@ export const categoriesService = {
       throw new Error('Catégorie non trouvée ou non autorisée (catégories système protégées)');
     }
 
-    // Si on change le titre, vérifier qu'il n'existe pas déjà
+    // Si on change le titre, vérifier qu'il n'existe pas déjà dans ce groupe
     if (updateData.title && updateData.title !== category.title) {
       const existingCategory = await prisma.category.findFirst({
         where: {
+          groupId: groupId,
           title: updateData.title,
           id: { not: categoryId }
         }
       });
 
       if (existingCategory) {
-        throw new Error('Une catégorie avec ce titre existe déjà');
+        throw new Error('Une catégorie avec ce titre existe déjà dans ce groupe');
       }
     }
 
@@ -110,12 +112,12 @@ export const categoriesService = {
   },
 
   // Supprimer une catégorie
-  async deleteCategory(categoryId, familyId) {
+  async deleteCategory(categoryId, groupId) {
     // Vérifier que la catégorie appartient à la famille et n'est pas système
     const category = await prisma.category.findFirst({
       where: {
         id: categoryId,
-        familyId: familyId,
+        groupId: groupId,
         isSystem: false // Seules les catégories personnalisées peuvent être supprimées
       }
     });
@@ -139,14 +141,14 @@ export const categoriesService = {
   },
 
   // Vérifier si une catégorie peut être désactivée (pas de tâches actives)
-  async canDeactivateCategory(categoryId, familyId) {
+  async canDeactivateCategory(categoryId, groupId) {
     // Vérifier que la catégorie appartient à la famille ou est une catégorie système
     const category = await prisma.category.findFirst({
       where: {
         id: categoryId,
         OR: [
           { isSystem: true }, // Catégories système
-          { familyId: familyId, isSystem: false } // Catégories personnalisées de la famille
+          { groupId: groupId, isSystem: false } // Catégories personnalisées de la famille
         ]
       }
     });
@@ -159,7 +161,7 @@ export const categoriesService = {
     const activeTasksCount = await prisma.taskTemplate.count({
       where: {
         categoryId: categoryId,
-        familyId: familyId
+        groupId: groupId
       }
     });
 
@@ -171,16 +173,16 @@ export const categoriesService = {
   },
 
   // Désactiver/Activer une catégorie
-  async toggleCategoryStatus(categoryId, familyId, isActive) {
+  async toggleCategoryStatus(categoryId, groupId, isActive) {
     console.log('Toggle category request:', {
       categoryId,
-      familyId,
+      groupId,
       body: { isActive }
     });
 
     // Si on essaie de désactiver, vérifier qu'il n'y a pas de tâches actives
     if (!isActive) {
-      const canDeactivate = await this.canDeactivateCategory(categoryId, familyId);
+      const canDeactivate = await this.canDeactivateCategory(categoryId, groupId);
       if (!canDeactivate.canDeactivate) {
         throw new Error(`Impossible de désactiver la catégorie "${canDeactivate.categoryName}" car elle contient ${canDeactivate.activeTasksCount} tâche(s) active(s). Supprimez d'abord les tâches ou désactivez-les.`);
       }
@@ -189,7 +191,7 @@ export const categoriesService = {
     const category = await prisma.category.findFirst({
       where: {
         id: categoryId,
-        familyId: familyId,
+        groupId: groupId,
         isSystem: false // Seules les catégories personnalisées peuvent être modifiées
       }
     });

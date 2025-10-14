@@ -5,12 +5,12 @@ import { USER_ROLES } from 'shared/constants';
 /**
  * Créer un profil enfant (par un parent)
  */
-export async function createChild({ familyId, name, age, pin, avatar }) {
+export async function createChild({ groupId, name, age, pin, avatar }) {
   const hashedPin = await bcrypt.hash(pin, 10);
 
   const child = await prisma.user.create({
     data: {
-      familyId,
+      groupId,
       role: USER_ROLES.CHILD,
       name,
       age,
@@ -31,12 +31,12 @@ export async function createChild({ familyId, name, age, pin, avatar }) {
 }
 
 /**
- * Récupérer tous les enfants d'une famille
+ * Récupérer tous les enfants d'un groupe
  */
-export async function getChildren(familyId) {
+export async function getChildren(groupId) {
   const children = await prisma.user.findMany({
     where: {
-      familyId,
+      groupId,
       role: USER_ROLES.CHILD,
     },
     select: {
@@ -57,12 +57,12 @@ export async function getChildren(familyId) {
 /**
  * Mettre à jour un enfant
  */
-export async function updateChild(childId, familyId, updates) {
-  // Vérifier que l'enfant appartient à la famille
+export async function updateChild(childId, groupId, updates) {
+  // Vérifier que l'enfant appartient au groupe
   const child = await prisma.user.findFirst({
     where: {
       id: childId,
-      familyId,
+      groupId,
       role: USER_ROLES.CHILD,
     },
   });

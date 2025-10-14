@@ -9,6 +9,10 @@ export async function createTaskAssignment({
   startDate,
   endDate,
   isActive,
+  recurrence,
+  recurrenceDays,
+  recurrenceStartDate,
+  recurrenceInterval,
 }) {
   const assignment = await prisma.taskAssignment.create({
     data: {
@@ -17,6 +21,14 @@ export async function createTaskAssignment({
       startDate: new Date(startDate),
       endDate: endDate ? new Date(endDate) : null,
       isActive,
+      recurrence: recurrence || null,
+      recurrenceDays: Array.isArray(recurrenceDays)
+        ? recurrenceDays.join(',')
+        : recurrenceDays || null,
+      recurrenceStartDate: recurrenceStartDate
+        ? new Date(recurrenceStartDate)
+        : null,
+      recurrenceInterval: recurrenceInterval || null,
     },
   });
 
@@ -41,11 +53,11 @@ export async function getChildAssignments(childId) {
 /**
  * Récupérer les assignations d'une famille (pour les parents)
  */
-export async function getFamilyAssignments(familyId) {
+export async function getGroupAssignments(groupId) {
   const assignments = await prisma.taskAssignment.findMany({
     where: {
       child: {
-        familyId,
+        groupId,
       },
     },
     include: {
@@ -67,13 +79,13 @@ export async function getFamilyAssignments(familyId) {
 /**
  * Mettre à jour une assignation
  */
-export async function updateTaskAssignment(assignmentId, familyId, updates) {
+export async function updateTaskAssignment(assignmentId, groupId, updates) {
   // Vérifier que l'assignation appartient à la famille
   const assignment = await prisma.taskAssignment.findFirst({
     where: {
       id: assignmentId,
       child: {
-        familyId,
+        groupId,
       },
     },
   });
@@ -88,6 +100,14 @@ export async function updateTaskAssignment(assignmentId, familyId, updates) {
       ...updates,
       startDate: updates.startDate ? new Date(updates.startDate) : undefined,
       endDate: updates.endDate ? new Date(updates.endDate) : undefined,
+      recurrence: updates.recurrence ?? undefined,
+      recurrenceDays: Array.isArray(updates.recurrenceDays)
+        ? updates.recurrenceDays.join(',')
+        : updates.recurrenceDays ?? undefined,
+      recurrenceStartDate: updates.recurrenceStartDate
+        ? new Date(updates.recurrenceStartDate)
+        : undefined,
+      recurrenceInterval: updates.recurrenceInterval ?? undefined,
     },
     include: {
       taskTemplate: true,
@@ -107,12 +127,12 @@ export async function updateTaskAssignment(assignmentId, familyId, updates) {
 /**
  * Supprimer une assignation
  */
-export async function deleteTaskAssignment(assignmentId, familyId) {
+export async function deleteTaskAssignment(assignmentId, groupId) {
   const assignment = await prisma.taskAssignment.findFirst({
     where: {
       id: assignmentId,
       child: {
-        familyId,
+        groupId,
       },
     },
   });
@@ -160,8 +180,9 @@ export async function generateDailyTasksFromAssignments(childId, date) {
     const template = assignment.taskTemplate;
     let shouldCreate = false;
 
-    // Vérifier la récurrence
-    switch (template.recurrence) {
+    // Récurrence effective: récurrence de l'assignation si définie, sinon celle du template
+    const effectiveRecurrence = assignment.recurrence || template.recurrence;
+    switch (effectiveRecurrence) {
       case 'daily':
         shouldCreate = true;
         break;
@@ -191,6 +212,30 @@ export async function generateDailyTasksFromAssignments(childId, date) {
         break;
       case 'sunday':
         shouldCreate = dayOfWeek === 0;
+        break;
+      case 'weekly_days': {
+        const daysCsv = assignment.recurrenceDays || '';
+        const days = daysCsv
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .map((n) => parseInt(n, 10));
+        shouldCreate = days.includes(dayOfWeek);
+        break;
+      }
+      case 'every_n_days': {
+        if (assignment.recurrenceStartDate && assignment.recurrenceInterval) {
+          const start = new Date(assignment.recurrenceStartDate);
+          const diffDays = Math.floor(
+            (new Date(targetDate.toDateString()).getTime() - new Date(start.toDateString()).getTime()) / (1000 * 60 * 60 * 24)
+          );
+          shouldCreate = diffDays >= 0 && diffDays % assignment.recurrenceInterval === 0;
+        } else {
+          shouldCreate = false;
+        }
+        break;
+      }
+      default:
         break;
     }
 

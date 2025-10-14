@@ -1,40 +1,44 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createAvatar } from '@dicebear/core';
 import { adventurer, bottts, pixelArt, avataaars } from '@dicebear/collection';
 import { X, RefreshCw } from 'lucide-react';
 import { generateAvatarSeed } from '../../utils/avatarUtils';
 
-const AVATAR_STYLES = {
+const getAvatarStyles = (t) => ({
   adventure: {
-    name: 'Aventure',
+    name: t('avatar.styles.adventure'),
     style: adventurer,
-    description: 'Explorateur courageux',
+    description: t('avatar.styles.adventureDesc'),
     colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57']
   },
   robot: {
-    name: 'Robot',
+    name: t('avatar.styles.robot'),
     style: bottts,
-    description: 'Robot futuriste',
+    description: t('avatar.styles.robotDesc'),
     colors: ['#2c3e50', '#34495e', '#7f8c8d', '#95a5a6', '#bdc3c7']
   },
   pixel: {
-    name: 'Pixel',
+    name: t('avatar.styles.pixel'),
     style: pixelArt,
-    description: 'Style rétro',
+    description: t('avatar.styles.pixelDesc'),
     colors: ['#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', '#3498db']
   },
   surprise: {
-    name: 'Surprise',
+    name: t('avatar.styles.surprise'),
     style: avataaars,
-    description: 'Mélange créatif',
+    description: t('avatar.styles.surpriseDesc'),
     colors: ['#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#ff9f43']
   }
-};
+});
 
 export default function AvatarSelector({ currentAvatar, onAvatarChange, onClose }) {
+  const { t } = useTranslation();
   const [selectedStyle, setSelectedStyle] = useState('adventure');
   const [selectedColor, setSelectedColor] = useState('#ff6b6b');
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  const AVATAR_STYLES = getAvatarStyles(t);
 
   const generateAvatar = (style, color) => {
     try {
@@ -45,7 +49,7 @@ export default function AvatarSelector({ currentAvatar, onAvatarChange, onClose 
       });
       return avatar.toDataUri();
     } catch (error) {
-      console.error('Erreur lors de la génération de l\'avatar:', error);
+      console.error(t('common.error') + ':', error);
       return currentAvatar;
     }
   };
@@ -82,7 +86,7 @@ export default function AvatarSelector({ currentAvatar, onAvatarChange, onClose 
       <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Choisis ton avatar !</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('avatar.title')}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -94,7 +98,7 @@ export default function AvatarSelector({ currentAvatar, onAvatarChange, onClose 
         {/* Style Selection */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Choisis ton style :
+            {t('avatar.chooseStyle')}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {Object.entries(AVATAR_STYLES).map(([key, style]) => (
@@ -134,7 +138,7 @@ export default function AvatarSelector({ currentAvatar, onAvatarChange, onClose 
         {/* Color Selection */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Choisis ta couleur :
+            {t('avatar.chooseColor')}
           </h3>
           <div className="flex gap-3 flex-wrap">
             {currentStyle.colors.map((color) => (
@@ -155,7 +159,7 @@ export default function AvatarSelector({ currentAvatar, onAvatarChange, onClose 
         {/* Preview */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Aperçu :
+            {t('avatar.preview')}
           </h3>
           <div className="flex items-center justify-center">
             <div className="relative">
@@ -166,7 +170,7 @@ export default function AvatarSelector({ currentAvatar, onAvatarChange, onClose 
               ) : (
                 <img
                   src={generateAvatar(currentStyle.style, selectedColor)}
-                  alt="Aperçu avatar"
+                  alt={t('avatar.previewAlt')}
                   className="w-24 h-24 rounded-full border-4 border-gray-200"
                 />
               )}
@@ -182,13 +186,13 @@ export default function AvatarSelector({ currentAvatar, onAvatarChange, onClose 
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-            Nouveau
+            {t('avatar.generateNew')}
           </button>
           <button
             onClick={handleConfirm}
             className="px-6 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
           >
-            Confirmer
+            {t('avatar.confirm')}
           </button>
         </div>
       </div>

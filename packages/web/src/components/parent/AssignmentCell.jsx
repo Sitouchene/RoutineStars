@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Calendar, Play, Pause, Trash2, Edit, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 
 export default function AssignmentCell({ 
   task, 
@@ -13,6 +14,7 @@ export default function AssignmentCell({
   onToggleAssignment 
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const { t } = useTranslation();
 
   const formatDateRange = (startDate, endDate) => {
     const start = format(new Date(startDate), 'dd MMM', { locale: fr });
@@ -25,7 +27,7 @@ export default function AssignmentCell({
   };
 
   const getStatusText = (isActive) => {
-    return isActive ? 'Actif' : 'Inactif';
+    return isActive ? t('assignments.active') : t('assignments.inactive');
   };
 
   const getStatusIcon = (isActive) => {
@@ -50,7 +52,7 @@ export default function AssignmentCell({
         onMouseLeave={() => setIsHovered(false)}
       >
         <Plus className={`w-6 h-6 text-gray-400 transition-colors ${isHovered ? 'text-gray-600' : ''}`} />
-        <span className="text-xs text-gray-500 mt-1">Assigner</span>
+        <span className="text-xs text-gray-500 mt-1">{t('assignments.tooltip.assign')}</span>
       </div>
     );
   }
@@ -84,7 +86,7 @@ export default function AssignmentCell({
             onEditAssignment(assignment);
           }}
           className="p-1 hover:bg-white hover:bg-opacity-50 rounded transition-colors"
-          title="Modifier l'assignation"
+          title={t('assignments.tooltip.edit')}
         >
           <Edit className="w-3 h-3 text-gray-600" />
         </button>
@@ -95,7 +97,7 @@ export default function AssignmentCell({
             onToggleAssignment(assignment.id, assignment.isActive);
           }}
           className="p-1 hover:bg-white hover:bg-opacity-50 rounded transition-colors"
-          title={assignment.isActive ? 'Désactiver' : 'Activer'}
+          title={assignment.isActive ? t('assignments.tooltip.deactivate') : t('assignments.tooltip.activate')}
         >
           {assignment.isActive ? (
             <Pause className="w-3 h-3 text-orange-600" />
@@ -110,7 +112,7 @@ export default function AssignmentCell({
             onDeleteAssignment(assignment.id);
           }}
           className="p-1 hover:bg-white hover:bg-opacity-50 rounded transition-colors"
-          title="Supprimer l'assignation"
+          title={t('assignments.tooltip.delete')}
         >
           <Trash2 className="w-3 h-3 text-red-600" />
         </button>

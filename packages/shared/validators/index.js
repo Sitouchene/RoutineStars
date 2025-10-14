@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import {
-  TASK_CATEGORIES,
   TASK_RECURRENCE,
   USER_ROLES,
 } from '../constants/index.js';
@@ -10,14 +9,12 @@ import {
  */
 export const taskTemplateSchema = z.object({
   title: z.string().min(1, 'Le titre est requis').max(100),
-  category: z.enum([
-    TASK_CATEGORIES.ROUTINE,
-    TASK_CATEGORIES.MAISON,
-    TASK_CATEGORIES.ETUDES,
-  ]),
+  categoryId: z.string().uuid('Catégorie invalide'),
   icon: z.string().optional(),
   points: z.number().int().min(1).max(100).default(5),
-  recurrence: z.enum(Object.values(TASK_RECURRENCE)),
+  // Laisser libre pour permettre des valeurs évolutives côté backend.
+  // Les paramètres de récurrence détaillés sont désormais au niveau des assignations.
+  recurrence: z.string().min(1, 'La récurrence est requise'),
   description: z.string().max(500).optional(),
 });
 
@@ -84,6 +81,37 @@ export const taskAssignmentSchema = z.object({
   startDate: z.string().datetime('Format de date invalide'),
   endDate: z.string().datetime('Format de date invalide').optional(),
   isActive: z.boolean().default(true),
+  // Options de récurrence spécifiques à l'assignation (facultatives)
+  recurrence: z.string().optional(),
+  recurrenceDays: z.array(z.number().min(0).max(6)).optional(),
+  recurrenceStartDate: z.string().datetime('Date de départ invalide').optional(),
+  recurrenceInterval: z.number().int().min(1).optional(),
+}).superRefine((data, ctx) => {
+  if (data.recurrence === 'weekly_days') {
+    if (!data.recurrenceDays || data.recurrenceDays.length === 0) {
+      ctx.addIssue({
+        path: ['recurrenceDays'],
+        code: z.ZodIssueCode.custom,
+        message: 'Sélectionnez au moins un jour (weekly_days)',
+      });
+    }
+  }
+  if (data.recurrence === 'every_n_days') {
+    if (!data.recurrenceStartDate) {
+      ctx.addIssue({
+        path: ['recurrenceStartDate'],
+        code: z.ZodIssueCode.custom,
+        message: 'La date de départ est requise (every_n_days)',
+      });
+    }
+    if (!data.recurrenceInterval || data.recurrenceInterval < 1) {
+      ctx.addIssue({
+        path: ['recurrenceInterval'],
+        code: z.ZodIssueCode.custom,
+        message: "Intervalle (jours) ≥ 1 requis (every_n_days)",
+      });
+    }
+  }
 });
 
 /**

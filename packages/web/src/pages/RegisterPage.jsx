@@ -48,7 +48,7 @@ export default function RegisterPage() {
       });
 
       // Connexion automatique après inscription
-      login(user, token);
+      login(token, user);
       navigate('/parent');
     } catch (err) {
       setError(err.message);

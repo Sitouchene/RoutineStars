@@ -23,7 +23,7 @@ export async function createTaskTemplateController(req, res, next) {
   try {
     const validatedData = taskTemplateSchema.parse(req.body);
     const taskTemplate = await tasksService.createTaskTemplate({
-      familyId: req.user.familyId,
+      groupId: req.user.groupId,
       ...validatedData,
     });
     res.status(201).json(taskTemplate);
@@ -37,7 +37,7 @@ export async function createTaskTemplateController(req, res, next) {
  */
 export async function getTaskTemplatesController(req, res, next) {
   try {
-    const templates = await tasksService.getTaskTemplates(req.user.familyId);
+    const templates = await tasksService.getTaskTemplates(req.user.groupId);
     res.json(templates);
   } catch (error) {
     next(error);
@@ -51,7 +51,7 @@ export async function updateTaskTemplateController(req, res, next) {
   try {
     const template = await tasksService.updateTaskTemplate(
       req.params.id,
-      req.user.familyId,
+      req.user.groupId,
       req.body
     );
     res.json(template);
@@ -67,7 +67,7 @@ export async function deleteTaskTemplateController(req, res, next) {
   try {
     const result = await tasksService.deleteTaskTemplate(
       req.params.id,
-      req.user.familyId
+      req.user.groupId
     );
     res.json(result);
   } catch (error) {
@@ -132,7 +132,7 @@ export async function validateTaskController(req, res, next) {
     const validatedData = validateTaskSchema.parse(req.body);
     const task = await tasksService.validateTask(
       req.params.id,
-      req.user.familyId,
+      req.user.groupId,
       validatedData.score,
       validatedData.comment
     );

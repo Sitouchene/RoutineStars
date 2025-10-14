@@ -3,18 +3,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../stores/authStore';
 import { submissionsApi, tasksApi } from '../../lib/api-client';
 import { Calendar, CheckCircle, Clock, MessageSquare, Eye, Edit3 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function SubmissionsPage() {
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [showValidationModal, setShowValidationModal] = useState(false);
-  const { getAuthHeader, user } = useAuthStore();
+  const { getAuthHeader, user, group } = useAuthStore();
   const queryClient = useQueryClient();
+  const { t, i18n } = useTranslation();
 
   // Récupérer les soumissions de la famille
   const { data: submissions = [], isLoading } = useQuery({
-    queryKey: ['familySubmissions', user?.familyId],
-    queryFn: () => submissionsApi.getFamilySubmissions(getAuthHeader()),
-    enabled: !!user?.familyId,
+    queryKey: ['familySubmissions', user?.groupId],
+    queryFn: () => submissionsApi.getGroupSubmissions(getAuthHeader()),
+    enabled: !!user?.groupId,
   });
 
   // Récupérer les détails d'une soumission avec les tâches
@@ -29,7 +31,7 @@ export default function SubmissionsPage() {
     mutationFn: ({ submissionId, parentComment }) => 
       submissionsApi.validateSubmission(submissionId, parentComment, getAuthHeader()),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['familySubmissions', user?.familyId] });
+      queryClient.invalidateQueries({ queryKey: ['familySubmissions', user?.groupId] });
       setShowValidationModal(false);
       setSelectedSubmission(null);
     },
@@ -66,13 +68,8 @@ export default function SubmissionsPage() {
   };
 
   const getStatusText = (submission) => {
-    if (submission.validatedAt) return 'Validée';
-    return 'En attente';
-  };
-
-  const getStatusIcon = (submission) => {
-    if (submission.validatedAt) return <CheckCircle className="w-4 h-4" />;
-    return <Clock className="w-4 h-4" />;
+    if (submission.validatedAt) return t('submissions.validated');
+    return t('submissions.pending');
   };
 
   // Grouper les soumissions par date
@@ -83,29 +80,31 @@ export default function SubmissionsPage() {
     return acc;
   }, {});
 
+  const membersKey = group?.type === 'classroom' ? t('dashboard.members.students') : t('dashboard.members.children');
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Soumissions des enfants</h1>
-          <p className="text-gray-600">Validez les journées soumises par vos enfants</p>
+          <h1 className="text-2xl font-bold text-gray-900">{group?.type === 'classroom' ? t('submissions.headerTeacher') : t('submissions.header')}</h1>
+          <p className="text-gray-600">{t('submissions.description', { members: membersKey })}</p>
         </div>
         <div className="text-sm text-gray-500">
-          {submissions.length} soumission(s) au total
+          {t('submissions.totalCount', { count: submissions.length })}
         </div>
       </div>
 
       {/* Liste des soumissions groupées par date */}
       {isLoading ? (
         <div className="text-center py-12">
-          <div className="text-gray-500">Chargement des soumissions...</div>
+          <div className="text-gray-500">{t('submissions.loading')}</div>
         </div>
       ) : submissions.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-gray-500 mb-4">Aucune soumission pour le moment</div>
+          <div className="text-gray-500 mb-4">{t('submissions.empty')}</div>
           <p className="text-sm text-gray-400">
-            Les soumissions apparaîtront ici quand vos enfants soumettront leurs journées
+            {t('submissions.emptyHelp', { members: membersKey })}
           </p>
         </div>
       ) : (
@@ -115,7 +114,7 @@ export default function SubmissionsPage() {
               {/* En-tête de date */}
               <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <h3 className="font-semibold text-gray-900">
-                  {new Date(date).toLocaleDateString('fr-FR', {
+                  {new Date(date).toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : i18n.language === 'ar' ? 'ar' : 'en-US', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
@@ -123,7 +122,7 @@ export default function SubmissionsPage() {
                   })}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {dateSubmissions.length} enfant(s) ont soumis leur journée
+                  {t('submissions.groupSub', { count: dateSubmissions.length, members: membersKey })}
                 </p>
               </div>
 
@@ -139,14 +138,14 @@ export default function SubmissionsPage() {
                         <div>
                           <h4 className="font-semibold text-gray-900">{submission.child.name}</h4>
                           <p className="text-sm text-gray-600">
-                            Soumise le {new Date(submission.submittedAt).toLocaleString('fr-FR')}
+                            {new Date(submission.submittedAt).toLocaleString(i18n.language === 'fr' ? 'fr-FR' : i18n.language === 'ar' ? 'ar' : 'en-US')}
                           </p>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-3">
                         <div className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${getStatusColor(submission)}`}>
-                          {getStatusIcon(submission)}
+                          {submission.validatedAt ? <CheckCircle className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
                           {getStatusText(submission)}
                         </div>
                         
@@ -160,7 +159,7 @@ export default function SubmissionsPage() {
                           }`}
                         >
                           <Eye className="w-4 h-4" />
-                          {submission.validatedAt ? 'Déjà validée' : 'Valider'}
+                          {submission.validatedAt ? t('submissions.alreadyValidated') : t('submissions.validate')}
                         </button>
                       </div>
                     </div>
@@ -170,7 +169,7 @@ export default function SubmissionsPage() {
                         <div className="flex items-start gap-2">
                           <MessageSquare className="w-4 h-4 text-green-600 mt-0.5" />
                           <div>
-                            <p className="text-sm font-medium text-green-800">Commentaire parent :</p>
+                            <p className="text-sm font-medium text-green-800">{t('submissions.parentCommentLabel')}</p>
                             <p className="text-sm text-green-700">{submission.parentComment}</p>
                           </div>
                         </div>
@@ -207,6 +206,7 @@ export default function SubmissionsPage() {
 function DetailedValidationModal({ submission, submissionDetails, onClose, onSubmit, onValidateTask, isLoading, isTaskLoading }) {
   const [parentComment, setParentComment] = useState(submission.parentComment || '');
   const [taskValidations, setTaskValidations] = useState({});
+  const { t, i18n } = useTranslation();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -237,10 +237,10 @@ function DetailedValidationModal({ submission, submissionDetails, onClose, onSub
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
             <h3 className="text-xl font-bold text-gray-900">
-              Validation détaillée - {submission.child.name}
+              {t('submissions.modal.title', { name: submission.child.name })}
             </h3>
             <p className="text-sm text-gray-600">
-              {new Date(submission.date).toLocaleDateString('fr-FR', {
+              {new Date(submission.date).toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : i18n.language === 'ar' ? 'ar' : 'en-US', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -262,7 +262,7 @@ function DetailedValidationModal({ submission, submissionDetails, onClose, onSub
             <div className="space-y-6">
               {/* Liste des tâches */}
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Tâches de la journée</h4>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('submissions.modal.tasksTitle')}</h4>
                 <div className="space-y-4">
                   {submissionDetails.tasks.map(task => (
                     <TaskValidationCard
@@ -280,18 +280,18 @@ function DetailedValidationModal({ submission, submissionDetails, onClose, onSub
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Commentaire global pour la journée *
+                    {t('submissions.modal.globalCommentLabel')}
                   </label>
                   <textarea
                     value={parentComment}
                     onChange={(e) => setParentComment(e.target.value)}
-                    placeholder="Écrivez un message d'encouragement pour votre enfant..."
+                    placeholder={t('submissions.modal.globalCommentPlaceholder')}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                     rows={4}
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Ce commentaire sera visible par votre enfant après validation
+                    {t('submissions.modal.globalCommentHelp')}
                   </p>
                 </div>
 
@@ -303,21 +303,21 @@ function DetailedValidationModal({ submission, submissionDetails, onClose, onSub
                     className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                     disabled={isLoading}
                   >
-                    Annuler
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
                     className="flex-1 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                     disabled={isLoading || !parentComment.trim()}
                   >
-                    {isLoading ? 'Validation...' : 'Valider la journée'}
+                    {isLoading ? t('submissions.modal.submitting') : t('submissions.modal.submit')}
                   </button>
                 </div>
               </form>
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="text-gray-500">Chargement des détails...</div>
+              <div className="text-gray-500">{t('submissions.loadingDetails')}</div>
             </div>
           )}
         </div>
@@ -331,6 +331,7 @@ function TaskValidationCard({ task, onValidate, isLoading, getScoreColor }) {
   const [showValidation, setShowValidation] = useState(false);
   const [parentScore, setParentScore] = useState(task.parentScore || task.selfScore);
   const [parentComment, setParentComment] = useState(task.parentComment || '');
+  const { t } = useTranslation();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -350,11 +351,11 @@ function TaskValidationCard({ task, onValidate, isLoading, getScoreColor }) {
         </div>
         <div className="flex items-center gap-2">
           <div className={`px-2 py-1 rounded text-sm font-medium ${getScoreColor(task.selfScore)}`}>
-            Enfant: {task.selfScore}%
+            {t('submissions.task.childScore', { score: task.selfScore })}
           </div>
           {task.parentScore && (
             <div className={`px-2 py-1 rounded text-sm font-medium ${getScoreColor(task.parentScore)}`}>
-              Parent: {task.parentScore}%
+              {t('submissions.task.parentScore', { score: task.parentScore })}
             </div>
           )}
         </div>
@@ -362,7 +363,7 @@ function TaskValidationCard({ task, onValidate, isLoading, getScoreColor }) {
 
       {task.parentScore ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <p className="text-sm font-medium text-green-800">✅ Tâche validée</p>
+          <p className="text-sm font-medium text-green-800">{t('submissions.task.validated')}</p>
           {task.parentComment && (
             <p className="text-sm text-green-700 mt-1">"{task.parentComment}"</p>
           )}
@@ -370,13 +371,13 @@ function TaskValidationCard({ task, onValidate, isLoading, getScoreColor }) {
       ) : (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            Autoévaluation: {task.selfScore}%
+            {t('submissions.task.selfEval', { score: task.selfScore })}
           </div>
           <button
             onClick={() => setShowValidation(true)}
             className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm transition-colors"
           >
-            Valider
+            {t('submissions.task.validate')}
           </button>
         </div>
       )}
@@ -384,11 +385,11 @@ function TaskValidationCard({ task, onValidate, isLoading, getScoreColor }) {
       {/* Modal de validation de tâche */}
       {showValidation && (
         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <h6 className="font-medium text-gray-900 mb-3">Validation de la tâche</h6>
+          <h6 className="font-medium text-gray-900 mb-3">{t('submissions.task.validate')}</h6>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Score parent (0-100)
+                {t('submissions.task.scoreLabel')}
               </label>
               <input
                 type="number"
@@ -402,12 +403,12 @@ function TaskValidationCard({ task, onValidate, isLoading, getScoreColor }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Commentaire (optionnel)
+                {t('submissions.task.commentLabel', { optional: t('common.optional') })}
               </label>
               <textarea
                 value={parentComment}
                 onChange={(e) => setParentComment(e.target.value)}
-                placeholder="Commentaire pour cette tâche..."
+                placeholder={t('submissions.task.commentPlaceholder')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 rows={2}
               />
@@ -418,14 +419,14 @@ function TaskValidationCard({ task, onValidate, isLoading, getScoreColor }) {
                 onClick={() => setShowValidation(false)}
                 className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
                 className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors disabled:opacity-50"
                 disabled={isLoading}
               >
-                {isLoading ? 'Validation...' : 'Valider'}
+                {isLoading ? t('submissions.task.submitting') : t('submissions.task.submit')}
               </button>
             </div>
           </form>

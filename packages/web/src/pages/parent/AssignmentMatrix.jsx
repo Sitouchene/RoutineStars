@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../stores/authStore';
 import { tasksApi, childrenApi, assignmentsApi, categoriesApi } from '../../lib/api-client';
@@ -12,6 +13,7 @@ import AddTaskModal from '../../components/parent/AddTaskModal';
 export default function AssignmentMatrix() {
   const { getAuthHeader, user } = useAuthStore();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedChild, setSelectedChild] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -20,40 +22,42 @@ export default function AssignmentMatrix() {
   const [showAddChildModal, setShowAddChildModal] = useState(false);
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [isMobile, setIsMobile] = useState(false);
+  const [selectedTaskDetails, setSelectedTaskDetails] = useState(null); // Pour afficher les détails en mobile
 
   // Récupérer les catégories disponibles
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
-    queryKey: ['categories', user?.familyId],
+    queryKey: ['categories', user?.groupId],
     queryFn: () => categoriesApi.getAll(getAuthHeader()),
-    enabled: !!user?.familyId,
+    enabled: !!user?.groupId,
   });
 
   // Récupérer les tâches de la famille
   const { data: taskTemplates = [], isLoading: tasksLoading } = useQuery({
-    queryKey: ['taskTemplates', user?.familyId],
+    queryKey: ['taskTemplates', user?.groupId],
     queryFn: () => tasksApi.getTemplates(getAuthHeader()),
-    enabled: !!user?.familyId,
+    enabled: !!user?.groupId,
   });
 
   // Récupérer les enfants de la famille
   const { data: children = [], isLoading: childrenLoading } = useQuery({
-    queryKey: ['children', user?.familyId],
+    queryKey: ['children', user?.groupId],
     queryFn: () => childrenApi.getAll(getAuthHeader()),
-    enabled: !!user?.familyId,
+    enabled: !!user?.groupId,
   });
 
   // Récupérer toutes les assignations de la famille
   const { data: assignments = [], isLoading: assignmentsLoading } = useQuery({
-    queryKey: ['assignments', user?.familyId],
-    queryFn: () => assignmentsApi.getFamilyAssignments(getAuthHeader()),
-    enabled: !!user?.familyId,
+    queryKey: ['assignments', user?.groupId],
+    queryFn: () => assignmentsApi.getGroupAssignments(getAuthHeader()),
+    enabled: !!user?.groupId,
   });
 
   // Mutation pour supprimer une assignation
   const deleteAssignmentMutation = useMutation({
     mutationFn: (assignmentId) => assignmentsApi.delete(assignmentId, getAuthHeader()),
     onSuccess: () => {
-      queryClient.invalidateQueries(['assignments', user?.familyId]);
+      queryClient.invalidateQueries(['assignments', user?.groupId]);
     },
   });
 
@@ -62,7 +66,7 @@ export default function AssignmentMatrix() {
     mutationFn: ({ assignmentId, isActive }) => 
       assignmentsApi.update(assignmentId, { isActive }, getAuthHeader()),
     onSuccess: () => {
-      queryClient.invalidateQueries(['assignments', user?.familyId]);
+      queryClient.invalidateQueries(['assignments', user?.groupId]);
     },
   });
 
@@ -137,13 +141,31 @@ export default function AssignmentMatrix() {
     }));
   };
 
+  // Détecter si on est sur mobile
+  React.useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const getRecurrenceText = (recurrence) => {
     switch (recurrence) {
-      case 'daily': return 'Quotidien';
-      case 'weekday': return 'Jours de semaine';
-      case 'weekly': return 'Hebdomadaire';
-      case 'monthly': return 'Mensuel';
-      default: return 'Personnalisé';
+      case 'daily': return t('tasks.recurrence.daily');
+      case 'weekday': return t('tasks.recurrence.weekday');
+      case 'weekly': return t('tasks.recurrence.weekly');
+      case 'monthly': return t('tasks.recurrence.monthly');
+      default: return t('tasks.recurrence.custom');
+    }
+  };
+
+  const handleTaskClick = (task, category) => {
+    if (isMobile) {
+      setSelectedTaskDetails({ task, category });
     }
   };
 
@@ -151,7 +173,7 @@ export default function AssignmentMatrix() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="text-gray-500 mb-4">Chargement du tableau d'assignations...</div>
+          <div className="text-gray-500 mb-4">{t('matrix.loading')}</div>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
         </div>
       </div>
@@ -159,42 +181,71 @@ export default function AssignmentMatrix() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-2 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-2xl p-4 md:p-6 mb-4 md:mb-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Tableau d'Assignations</h1>
-              <p className="text-gray-600 mt-2">
-                Gérez les assignations de tâches pour tous vos enfants en un coup d'œil
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">{t('matrix.header.title')}</h1>
+              <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">
+                {isMobile ? t('assignments.descriptionMobile') : t('matrix.header.subtitle')}
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="text-sm text-gray-500">
-                {taskTemplates.length} tâches • {children.length} enfants
-              </div>
+            <div className="text-xs md:text-sm text-gray-500">
+              {t('assignments.tasksCount', { count: taskTemplates.length })} • {children.length} {isMobile ? t('dashboard.members.children') : (children.length > 1 ? t('dashboard.members.children') : 'enfant')}
             </div>
           </div>
           
           {/* Boutons d'action */}
-          <div className="flex items-center gap-3 mt-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 mt-3 md:mt-4">
             <button
               onClick={() => setShowAddChildModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors text-sm md:text-base"
             >
               <UserPlus className="w-4 h-4" />
-              <span>Ajouter un enfant</span>
+              <span>{t('assignments.addChild')}</span>
             </button>
             <button
               onClick={() => setShowAddTaskModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors text-sm md:text-base"
             >
               <ListTodo className="w-4 h-4" />
-              <span>Ajouter une tâche</span>
+              <span>{t('assignments.addTask')}</span>
             </button>
           </div>
         </div>
+
+        {/* Barre d'état des détails (Mobile) */}
+        {isMobile && selectedTaskDetails && (
+          <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border-2 border-primary-500">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start gap-3 flex-1">
+                <span className="text-3xl">{selectedTaskDetails.task.icon || selectedTaskDetails.category.icon}</span>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900">{selectedTaskDetails.task.title}</h3>
+                  <p className="text-sm text-gray-600 mt-1">{selectedTaskDetails.task.description}</p>
+                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                    <span>{selectedTaskDetails.category.display}</span>
+                    <span>•</span>
+              <span>{getRecurrenceText(selectedTaskDetails.task.recurrence)}</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <span className="font-semibold text-yellow-600">{selectedTaskDetails.task.points}</span>
+                      <span>⭐</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedTaskDetails(null)}
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Tableau croisé avec en-têtes figés */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -203,14 +254,14 @@ export default function AssignmentMatrix() {
               {/* En-têtes des colonnes (enfants) - FIGÉS */}
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="w-80 px-6 py-4 text-left text-sm font-semibold text-gray-900 border-r bg-gray-50 sticky left-0 z-20">
-                    Tâches
+                  <th className={`${isMobile ? 'w-24 px-2' : 'w-80 px-6'} py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-900 border-r bg-gray-50 sticky left-0 z-20`}>
+                    {isMobile ? t('assignments.task') : t('assignments.tasks')}
                   </th>
                   {children.map(child => (
-                    <th key={child.id} className="w-48 px-4 py-4 text-center border-r last:border-r-0 bg-gray-50">
+                    <th key={child.id} className={`${isMobile ? 'w-16 px-1' : 'w-48 px-4'} py-2 md:py-4 text-center border-r last:border-r-0 bg-gray-50`}>
                       <div className="flex flex-col items-center">
-                        <div className="font-semibold text-gray-900">{child.name}</div>
-                        <div className="text-sm text-gray-500">{child.age} ans</div>
+                        <div className={`font-semibold text-gray-900 ${isMobile ? 'text-xs truncate max-w-[60px]' : 'text-sm'}`}>{child.name}</div>
+                        {!isMobile && <div className="text-sm text-gray-500">{t('children.age', { count: child.age })}</div>}
                       </div>
                     </th>
                   ))}
@@ -228,26 +279,28 @@ export default function AssignmentMatrix() {
                     {/* En-tête de catégorie */}
                     <tr className="bg-gray-100">
                       <td 
-                        className="px-6 py-3 border-r sticky left-0 z-10 bg-gray-100 cursor-pointer hover:bg-gray-200 transition-colors"
+                        className={`${isMobile ? 'px-2 py-2' : 'px-6 py-3'} border-r sticky left-0 z-10 bg-gray-100 cursor-pointer hover:bg-gray-200 transition-colors`}
                         onClick={() => toggleCategory(category.id)}
                       >
-                        <div className="flex items-center gap-3">
+                        <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-3'}`}>
                           {isExpanded ? (
-                            <ChevronDown className="w-4 h-4 text-gray-600" />
+                            <ChevronDown className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-600`} />
                           ) : (
-                            <ChevronRight className="w-4 h-4 text-gray-600" />
+                            <ChevronRight className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-gray-600`} />
                           )}
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{category.icon}</span>
-                            <span className="font-semibold text-gray-900">
-                              {category.display}
-                            </span>
-                            <span className="text-sm text-gray-500">({tasks.length} tâches)</span>
+                          <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
+                            <span className={`${isMobile ? 'text-base' : 'text-lg'}`}>{category.icon}</span>
+                            {!isMobile && (
+                              <>
+                                <span className="font-semibold text-gray-900">{category.display}</span>
+                                <span className="text-sm text-gray-500">({tasks.length})</span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </td>
                       {children.map(child => (
-                        <td key={`header-${child.id}`} className="px-4 py-3 border-r last:border-r-0 bg-gray-100"></td>
+                        <td key={`header-${child.id}`} className={`${isMobile ? 'px-1 py-2' : 'px-4 py-3'} border-r last:border-r-0 bg-gray-100`}></td>
                       ))}
                     </tr>
 
@@ -255,28 +308,43 @@ export default function AssignmentMatrix() {
                     {isExpanded && tasks.map((task, index) => (
                       <tr key={task.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         {/* Colonne des tâches */}
-                        <td className="px-6 py-4 border-r sticky left-0 z-10 bg-inherit">
-                          <div className="flex items-center gap-3">
-                            <div className="text-2xl">{task.icon || category.icon}</div>
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900">{task.title}</div>
-                              <div className="text-sm text-gray-500 flex items-center gap-2 mt-1">
-                                <span>{category.display}</span>
-                                <span>•</span>
-                                <span>{getRecurrenceText(task.recurrence)}</span>
-                                <span>•</span>
-                                <span className="flex items-center gap-1">
-                                  <span>{task.points}</span>
-                                  <span className="text-yellow-500">⭐</span>
-                                </span>
+                        <td 
+                          className={`${isMobile ? 'px-2 py-2' : 'px-6 py-4'} border-r sticky left-0 z-10 bg-inherit ${isMobile ? 'cursor-pointer' : ''}`}
+                          onClick={() => handleTaskClick(task, category)}
+                        >
+                          {isMobile ? (
+                            // Version mobile : Icône + Points seulement
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="text-xl">{task.icon || category.icon}</div>
+                              <div className="flex items-center gap-0.5 text-xs">
+                                <span className="font-semibold text-yellow-600">{task.points}</span>
+                                <span className="text-yellow-500">⭐</span>
                               </div>
                             </div>
-                          </div>
+                          ) : (
+                            // Version desktop : Tout affiché
+                            <div className="flex items-center gap-3">
+                              <div className="text-2xl">{task.icon || category.icon}</div>
+                              <div className="flex-1">
+                                <div className="font-semibold text-gray-900">{task.title}</div>
+                                <div className="text-sm text-gray-500 flex items-center gap-2 mt-1">
+                                  <span>{category.display}</span>
+                                  <span>•</span>
+                                  <span>{getRecurrenceText(task.recurrence)}</span>
+                                  <span>•</span>
+                                  <span className="flex items-center gap-1">
+                                    <span>{task.points}</span>
+                                    <span className="text-yellow-500">⭐</span>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </td>
 
                         {/* Cellules d'assignation pour chaque enfant */}
                         {children.map(child => (
-                          <td key={`${task.id}-${child.id}`} className="px-4 py-4 text-center border-r last:border-r-0">
+                          <td key={`${task.id}-${child.id}`} className={`${isMobile ? 'px-1 py-2' : 'px-4 py-4'} text-center border-r last:border-r-0`}>
                             <AssignmentCell
                               task={task}
                               child={child}
@@ -310,7 +378,7 @@ export default function AssignmentMatrix() {
             setSelectedChild(null);
           }}
           onSuccess={() => {
-            queryClient.invalidateQueries(['assignments', user?.familyId]);
+            queryClient.invalidateQueries(['assignments', user?.groupId]);
             setShowCreateModal(false);
             setSelectedTask(null);
             setSelectedChild(null);
@@ -326,7 +394,7 @@ export default function AssignmentMatrix() {
             setEditingAssignment(null);
           }}
           onSuccess={() => {
-            queryClient.invalidateQueries(['assignments', user?.familyId]);
+            queryClient.invalidateQueries(['assignments', user?.groupId]);
             setShowEditModal(false);
             setEditingAssignment(null);
           }}
@@ -337,7 +405,7 @@ export default function AssignmentMatrix() {
         <AddChildModal
           onClose={() => setShowAddChildModal(false)}
           onSuccess={() => {
-            queryClient.invalidateQueries(['children', user?.familyId]);
+            queryClient.invalidateQueries(['children', user?.groupId]);
             setShowAddChildModal(false);
           }}
         />
@@ -347,7 +415,7 @@ export default function AssignmentMatrix() {
         <AddTaskModal
           onClose={() => setShowAddTaskModal(false)}
           onSuccess={() => {
-            queryClient.invalidateQueries(['taskTemplates', user?.familyId]);
+            queryClient.invalidateQueries(['taskTemplates', user?.groupId]);
             setShowAddTaskModal(false);
           }}
         />

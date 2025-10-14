@@ -145,7 +145,9 @@ export default function TaskCard({
       'personal': 'from-green-400 to-emerald-500',
       'other': 'from-yellow-400 to-orange-500'
     };
-    return colors[category] || colors['other'];
+    // Gérer les objets Category ou les chaînes
+    const categoryKey = typeof category === 'object' ? category?.title : category;
+    return colors[categoryKey] || colors['other'];
   };
 
   const getRecurrenceIcon = (recurrence) => {

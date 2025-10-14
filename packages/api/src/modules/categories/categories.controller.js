@@ -9,13 +9,22 @@ const createCategorySchema = z.object({
   isActive: z.boolean().default(true)
 });
 
+// Schéma de mise à jour: tous les champs optionnels
+const updateCategorySchema = z.object({
+  title: z.string().min(1).max(50).regex(/^[a-z0-9_-]+$/, 'Le titre doit contenir uniquement des lettres minuscules, chiffres, tirets et underscores').optional(),
+  display: z.string().min(1).max(100).optional(),
+  description: z.string().min(1).max(500).optional(),
+  icon: z.string().max(10).optional(),
+  isActive: z.boolean().optional(),
+});
+
 const toggleCategorySchema = z.object({
   isActive: z.boolean()
 });
 
 export async function getCategoriesController(req, res, next) {
   try {
-    const categories = await categoriesService.getCategoriesByFamily(req.user.familyId);
+    const categories = await categoriesService.getCategoriesByGroup(req.user.groupId);
     res.json(categories);
   } catch (error) {
     next(error);
@@ -31,9 +40,9 @@ export async function getCommonCategoriesController(req, res, next) {
   }
 }
 
-export async function getFamilyCategoriesController(req, res, next) {
+export async function getGroupCategoriesController(req, res, next) {
   try {
-    const categories = await categoriesService.getFamilyCategories(req.user.familyId);
+    const categories = await categoriesService.getGroupCategories(req.user.groupId);
     res.json(categories);
   } catch (error) {
     next(error);
@@ -43,7 +52,7 @@ export async function getFamilyCategoriesController(req, res, next) {
 export async function createCategoryController(req, res, next) {
   try {
     const validatedData = createCategorySchema.parse(req.body);
-    const category = await categoriesService.createCategory(req.user.familyId, validatedData);
+    const category = await categoriesService.createCategory(req.user.groupId, validatedData);
     res.status(201).json(category);
   } catch (error) {
     next(error);
@@ -55,7 +64,7 @@ export async function updateCategoryController(req, res, next) {
     const validatedData = updateCategorySchema.parse(req.body);
     const category = await categoriesService.updateCategory(
       req.params.id,
-      req.user.familyId,
+      req.user.groupId,
       validatedData
     );
     res.json(category);
@@ -66,7 +75,7 @@ export async function updateCategoryController(req, res, next) {
 
 export async function deleteCategoryController(req, res, next) {
   try {
-    await categoriesService.deleteCategory(req.params.id, req.user.familyId);
+    await categoriesService.deleteCategory(req.params.id, req.user.groupId);
     res.status(204).send();
   } catch (error) {
     next(error);
@@ -77,14 +86,14 @@ export async function toggleCategoryStatusController(req, res, next) {
   try {
     console.log('Toggle category request:', {
       categoryId: req.params.id,
-      familyId: req.user.familyId,
+      groupId: req.user.groupId,
       body: req.body
     });
     
     const { isActive } = toggleCategorySchema.parse(req.body);
     const category = await categoriesService.toggleCategoryStatus(
       req.params.id,
-      req.user.familyId,
+      req.user.groupId,
       isActive
     );
     

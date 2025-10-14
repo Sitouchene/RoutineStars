@@ -10,10 +10,14 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Famille (compte principal)
-model Family {
+// Groupe (famille ou classe)
+model Group {
   id        String   @id @default(uuid())
+  type      String   // 'family' | 'classroom'
   name      String
+  code      String   @unique // Code partageable comme 'PANDA_ROUX_305'
+  language  String   @default("fr") // 'fr' | 'en' | 'ar'
+  country   String?  // 'CA' | 'DZ' (Phase 2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -23,13 +27,13 @@ model Family {
   dailyMessages DailyMessage[]
   evaluationWindows EvaluationWindow[]
 
-  @@map("families")
+  @@map("groups")
 }
 
 // Catégories de tâches
 model Category {
   id          String   @id @default(uuid())
-  familyId    String?  // null pour les catégories système, obligatoire pour les catégories personnalisées
+  groupId     String?  // null pour les catégories système, obligatoire pour les catégories personnalisées
   title       String   // Clé technique (household, routine, study)
   display     String   // Nom d'affichage (Maison, Routine, Études)
   description String   // Description détaillée
@@ -40,32 +44,33 @@ model Category {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  family        Family?        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  group         Group?         @relation(fields: [groupId], references: [id], onDelete: Cascade)
   taskTemplates TaskTemplate[]
 
-  @@unique([title], name: "category_title_unique")
+  @@unique([groupId, title], name: "category_group_title_unique")
   @@map("categories")
 }
 
-// Utilisateurs (parents et enfants)
+// Utilisateurs (parents/enfants ou enseignants/élèves)
 model User {
   id       String  @id @default(uuid())
-  familyId String
-  role     String // 'parent' ou 'child'
+  groupId  String
+  role     String // 'parent' ou 'child' (family) | 'teacher' ou 'student' (classroom)
   name     String
-  email    String? @unique // Uniquement pour parents
-  password String? // Uniquement pour parents (haché)
-  age      Int? // Uniquement pour enfants
-  pin      String? // Uniquement pour enfants (haché)
+  email    String? @unique // Uniquement pour parents/enseignants
+  password String? // Uniquement pour parents/enseignants (haché)
+  age      Int? // Uniquement pour enfants/élèves
+  pin      String? // Uniquement pour enfants/élèves (haché)
   avatar   String?
+  theme    String  @default("default") // 'default' | 'boy' | 'girl'
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  family       Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  tasks        Task[]
-  rewards      Reward[]
-  assignments  TaskAssignment[]
+  group       Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  rewards     Reward[]
+  assignments TaskAssignment[]
   daySubmissions DaySubmission[]
   dailyMessages DailyMessage[]
   evaluationWindows EvaluationWindow[]
@@ -73,10 +78,10 @@ model User {
   @@map("users")
 }
 
-// Modèles de tâches (créés par parents)
+// Modèles de tâches (créés par parents/enseignants)
 model TaskTemplate {
   id          String  @id @default(uuid())
-  familyId    String
+  groupId     String
   categoryId  String  // Relation vers Category (obligatoire)
   title       String
   icon        String?
@@ -87,9 +92,9 @@ model TaskTemplate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  family      Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  tasks       Task[]
+  group      Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  category   Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tasks      Task[]
   assignments TaskAssignment[]
 
   @@map("task_templates")
@@ -117,29 +122,29 @@ model Task {
   @@map("tasks")
 }
 
-// Messages du jour (par famille ou ciblé à un enfant)
+// Messages du jour (par groupe ou ciblé à un enfant/élève)
 model DailyMessage {
   id        String   @id @default(uuid())
-  familyId  String
-  childId   String?  // si null => message global à la famille
+  groupId   String
+  childId   String?  // si null => message global au groupe
   date      DateTime
   message   String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  child  User?  @relation(fields: [childId], references: [id])
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  child User? @relation(fields: [childId], references: [id])
 
-  @@unique([familyId, childId, date])
+  @@unique([groupId, childId, date])
   @@map("daily_messages")
 }
 
 // Fenêtre horaire d'autoévaluation/soumission
 model EvaluationWindow {
   id        String   @id @default(uuid())
-  familyId  String
-  childId   String?   // si null => règle par défaut pour la famille
+  groupId   String
+  childId   String?   // si null => règle par défaut pour le groupe
   startTime String    // format HH:mm
   endTime   String    // format HH:mm
   daysMask  String    // ex: "1,1,1,1,1,1,1" pour L..D
@@ -148,10 +153,10 @@ model EvaluationWindow {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  child  User?  @relation(fields: [childId], references: [id])
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  child User? @relation(fields: [childId], references: [id])
 
-  @@unique([familyId, childId])
+  @@unique([groupId, childId])
   @@map("evaluation_windows")
 }
 
@@ -163,6 +168,11 @@ model TaskAssignment {
   startDate      DateTime
   endDate        DateTime?
   isActive       Boolean   @default(true)
+  // Options de récurrence spécifiques à l'assignation (prioritaires sur le template)
+  recurrence           String?     // ex: 'weekly_days' | 'every_n_days' | etc.
+  recurrenceDays       String?     // CSV des jours 0-6 pour weekly_days, ex: "1,3,5"
+  recurrenceStartDate  DateTime?   // date de départ pour every_n_days
+  recurrenceInterval   Int?        // intervalle en jours pour every_n_days
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

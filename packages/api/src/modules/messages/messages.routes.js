@@ -6,21 +6,21 @@ import {
   updateMessageController,
   deleteMessageController,
 } from './messages.controller.js';
-import { authenticate, requireParent } from '../../middlewares/auth.middleware.js';
+import { authenticate, requireParentOrTeacher } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
 
 // Toutes les routes nécessitent une authentification
 router.use(authenticate);
 
-// GET accessibles aux parents et enfants (lecture)
+// GET accessibles à tous (lecture)
 router.get('/', listMessagesController);
 router.get('/by-date', getMessageForDateController);
 
-// Mutations réservées aux parents
-router.post('/', requireParent, createMessageController);
-router.put('/:id', requireParent, updateMessageController);
-router.delete('/:id', requireParent, deleteMessageController);
+// Mutations réservées aux parents et enseignants
+router.post('/', requireParentOrTeacher, createMessageController);
+router.put('/:id', requireParentOrTeacher, updateMessageController);
+router.delete('/:id', requireParentOrTeacher, deleteMessageController);
 
 export default router;
 

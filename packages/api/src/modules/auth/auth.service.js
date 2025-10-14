@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import prisma from '../../config/database.js';
 import { generateToken } from '../../config/jwt.js';
 import { USER_ROLES } from 'shared/constants';
+import { createGroup } from '../groups/groups.service.js';
 
 /**
  * Inscription d'un parent (crée aussi une famille)
@@ -41,7 +42,8 @@ export async function registerParent({ email, password, name }) {
   // Générer le token
   const token = generateToken({
     userId: result.parent.id,
-    familyId: result.family.id,
+    groupId: result.family.id,
+    familyId: result.family.id, // Alias pour compatibilité
     role: USER_ROLES.PARENT,
   });
 
@@ -77,7 +79,8 @@ export async function loginParent({ email, password }) {
 
   const token = generateToken({
     userId: user.id,
-    familyId: user.familyId,
+    groupId: user.groupId,
+    familyId: user.groupId, // Alias pour compatibilité
     role: user.role,
   });
 
@@ -113,7 +116,8 @@ export async function loginChild({ childId, pin }) {
 
   const token = generateToken({
     userId: child.id,
-    familyId: child.familyId,
+    groupId: child.groupId,
+    familyId: child.groupId, // Alias pour compatibilité
     role: child.role,
   });
 
@@ -126,6 +130,133 @@ export async function loginChild({ childId, pin }) {
       avatar: child.avatar,
       role: child.role,
       familyId: child.familyId,
+    },
+  };
+}
+
+/**
+ * Inscription d'un utilisateur (Parent/Enseignant) avec le nouveau modèle Group
+ */
+export async function registerUser({ email, password, name, groupId, role, language = 'fr', country = 'CA', grade = null }) {
+  // Vérifier si l'email existe déjà
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    throw new Error('Cet email est déjà utilisé');
+  }
+
+  // Hasher le mot de passe
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  let group;
+  
+  if (groupId) {
+    // Rejoindre un groupe existant
+    group = await prisma.group.findUnique({
+      where: { id: groupId },
+    });
+    
+    if (!group) {
+      throw new Error('Groupe non trouvé');
+    }
+  } else {
+    // Créer un nouveau groupe avec langue et pays
+    const groupType = role === 'teacher' ? 'classroom' : 'family';
+    const groupName = role === 'teacher' 
+      ? (grade ? `Classe de ${name} - ${grade}` : `Classe de ${name}`)
+      : `Famille de ${name}`;
+      
+    group = await createGroup({
+      type: groupType,
+      name: groupName,
+      language,
+      country
+    });
+  }
+
+  // Créer l'utilisateur
+  const user = await prisma.user.create({
+    data: {
+      groupId: group.id,
+      role: role === 'teacher' ? 'teacher' : 'parent',
+      name,
+      email,
+      password: hashedPassword,
+    },
+  });
+
+  // Générer le token
+  const token = generateToken({
+    userId: user.id,
+    groupId: group.id,
+    familyId: group.id, // Pour compatibilité
+    role: user.role,
+  });
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      groupId: group.id,
+    },
+    group: {
+      id: group.id,
+      type: group.type,
+      name: group.name,
+      code: group.code,
+      language: group.language,
+      country: group.country,
+    },
+  };
+}
+
+/**
+ * Connexion d'un utilisateur (Parent/Enseignant) avec le nouveau modèle Group
+ */
+export async function loginUser({ email, password }) {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      group: true,
+    },
+  });
+
+  if (!user || !['parent', 'teacher'].includes(user.role)) {
+    throw new Error('Email ou mot de passe incorrect');
+  }
+
+  const isValidPassword = await bcrypt.compare(password, user.password);
+
+  if (!isValidPassword) {
+    throw new Error('Email ou mot de passe incorrect');
+  }
+
+  const token = generateToken({
+    userId: user.id,
+    groupId: user.groupId,
+    familyId: user.groupId, // Pour compatibilité
+    role: user.role,
+  });
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      groupId: user.groupId,
+    },
+    group: {
+      id: user.group.id,
+      type: user.group.type,
+      name: user.group.name,
+      code: user.group.code,
     },
   };
 }

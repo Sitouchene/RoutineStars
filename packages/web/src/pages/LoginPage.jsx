@@ -21,7 +21,7 @@ export default function LoginPage() {
 
     try {
       const data = await authApi.loginParent({ email, password });
-      login(data.user, data.token);
+      login(data.token, data.user);
       navigate('/parent');
     } catch (err) {
       setError(err.message);

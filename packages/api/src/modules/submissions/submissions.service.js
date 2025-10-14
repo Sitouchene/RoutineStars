@@ -8,7 +8,7 @@ export async function submitDay(childId, date) {
   // Vérifier fenêtre horaire
   const { getWindow, isWithinWindow } = await import('../evalWindow/evalWindow.service.js');
   const child = await prisma.user.findUnique({ where: { id: childId } });
-  const window = await getWindow(child.familyId, childId);
+  const window = await getWindow(child.groupId, childId);
   if (!isWithinWindow(window)) {
     throw new Error('Soumission indisponible en dehors de la fenêtre autorisée');
   }
@@ -107,11 +107,11 @@ export async function getChildSubmissions(childId, limit = 30) {
 /**
  * Récupérer les soumissions d'une famille (pour les parents)
  */
-export async function getFamilySubmissions(familyId, limit = 30) {
+export async function getGroupSubmissions(groupId, limit = 30) {
   const submissions = await prisma.daySubmission.findMany({
     where: {
       child: {
-        familyId,
+        groupId,
       },
     },
     orderBy: { date: 'desc' },
@@ -133,13 +133,13 @@ export async function getFamilySubmissions(familyId, limit = 30) {
 /**
  * Valider une soumission par un parent
  */
-export async function validateSubmission(submissionId, familyId, parentComment) {
+export async function validateSubmission(submissionId, groupId, parentComment) {
   // Vérifier que la soumission appartient à la famille
   const submission = await prisma.daySubmission.findFirst({
     where: {
       id: submissionId,
       child: {
-        familyId,
+        groupId,
       },
     },
   });
@@ -176,12 +176,12 @@ export async function validateSubmission(submissionId, familyId, parentComment) 
 /**
  * Récupérer les détails d'une soumission avec les tâches
  */
-export async function getSubmissionDetails(submissionId, familyId) {
+export async function getSubmissionDetails(submissionId, groupId) {
   const submission = await prisma.daySubmission.findFirst({
     where: {
       id: submissionId,
       child: {
-        familyId,
+        groupId,
       },
     },
     include: {

@@ -9,7 +9,7 @@ export async function createChildController(req, res, next) {
   try {
     const validatedData = childSchema.parse(req.body);
     const child = await childrenService.createChild({
-      familyId: req.user.familyId,
+      groupId: req.user.groupId,
       ...validatedData,
     });
     res.status(201).json(child);
@@ -23,7 +23,7 @@ export async function createChildController(req, res, next) {
  */
 export async function getChildrenController(req, res, next) {
   try {
-    const children = await childrenService.getChildren(req.user.familyId);
+    const children = await childrenService.getChildren(req.user.groupId);
     res.json(children);
   } catch (error) {
     next(error);
@@ -37,7 +37,7 @@ export async function updateChildController(req, res, next) {
   try {
     const child = await childrenService.updateChild(
       req.params.id,
-      req.user.familyId,
+      req.user.groupId,
       req.body
     );
     res.json(child);

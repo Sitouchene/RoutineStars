@@ -166,10 +166,10 @@ export async function getChildMonthlyStats(childId, year, month) {
 /**
  * Récupérer les statistiques de tous les enfants d'une famille pour une période
  */
-export async function getFamilyStats(familyId, startDate, endDate) {
+export async function getGroupStats(groupId, startDate, endDate) {
   const children = await prisma.user.findMany({
     where: {
-      familyId,
+      groupId,
       role: 'child',
     },
     select: {

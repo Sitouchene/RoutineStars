@@ -1,0 +1,364 @@
+{
+  "info": {
+    "name": "RoutineStars Groups API",
+    "description": "Collection pour tester l'API Groups (Family/Classroom)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    },
+    {
+      "key": "familyGroupId",
+      "value": "a8fedfaf-60f7-4fb6-9608-98a9decadf26",
+      "type": "string"
+    },
+    {
+      "key": "classroomGroupId",
+      "value": "dcbd5e3c-ca93-4633-8b99-9ec0f5eed46e",
+      "type": "string"
+    },
+    {
+      "key": "familyCode",
+      "value": "RENARD_CYAN_765",
+      "type": "string"
+    },
+    {
+      "key": "classroomCode",
+      "value": "SINGE_GRIS_217",
+      "type": "string"
+    },
+    {
+      "key": "parentToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxYjcwNmJhMS02MDFmLTQzZDUtOWQ5YS1kY2ZjMzNjZjBjYWEiLCJncm91cElkIjoiNGM0YzVlNGEtZjdkYS00Y2E5LTkxZmYtNDAyY2ZlNTc0MWIzIiwiZmFtaWx5SWQiOiI0YzRjNWU0YS1mN2RhLTRjYTktOTFmZi00MDJjZmU1NzQxYjMiLCJyb2xlIjoicGFyZW50IiwiZW1haWwiOiJzaXRvdWNoZW5lQGdtYWlsLmNvbSIsImlhdCI6MTc2MDM3OTIyMSwiZXhwIjoxNzYwNDY1NjIxfQ.FZ8hKGo-bYBxCbKWuOXJwD3z5Emk9VHJmYBoczXnd6U",
+      "type": "string"
+    },
+    {
+      "key": "teacherToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhNDAzNDI5OC1lMzlmLTRkNDAtYTY1YS0wMzg2YTQ3MGEwNTkiLCJncm91cElkIjoiZGNiZDVlM2MtY2E5My00NjMzLThiOTktOWVjMGY1ZWVkNDZlIiwiZmFtaWx5SWQiOiJkY2JkNWUzYy1jYTkzLTQ2MzMtOGI5OS05ZWMwZjVlZWQ0NmUiLCJyb2xlIjoidGVhY2hlciIsImVtYWlsIjoibWFydGluQGVjb2xlLmZyIiwiaWF0IjoxNzYwMzc5MjIxLCJleHAiOjE3NjA0NjU2MjF9.73BLPS3wG7xRGtNY9H75EhTZUcaFWyk4eWwW0UWuqeY",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Groups",
+      "item": [
+        {
+          "name": "Create Family Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{parentToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"family\",\n  \"name\": \"Famille Martin\",\n  \"language\": \"fr\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups"]
+            }
+          }
+        },
+        {
+          "name": "Create Classroom Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"classroom\",\n  \"name\": \"Classe CE1B\",\n  \"language\": \"fr\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/groups",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups"]
+            }
+          }
+        },
+        {
+          "name": "Get Group by ID (Family)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{familyGroupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{familyGroupId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Group by ID (Classroom)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{classroomGroupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{classroomGroupId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Group by Code (Family)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/code/{{familyCode}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "code", "{{familyCode}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Group by Code (Classroom)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/code/{{classroomCode}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "code", "{{classroomCode}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Group Children (Family)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{familyGroupId}}/children?type=family",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{familyGroupId}}", "children"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "family"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Group Children (Classroom)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{classroomGroupId}}/children?type=classroom",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{classroomGroupId}}", "children"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "classroom"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Group",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Famille Martin (Modifiée)\",\n  \"language\": \"en\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{familyGroupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{familyGroupId}}"]
+            }
+          }
+        },
+        {
+          "name": "Regenerate Group Code",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{familyGroupId}}/regenerate-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{familyGroupId}}", "regenerate-code"]
+            }
+          }
+        },
+        {
+          "name": "Check Code Availability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"PANDA_ROUX_305\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/groups/check-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "check-code"]
+            }
+          }
+        },
+        {
+          "name": "Delete Group",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/{{familyGroupId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", "{{familyGroupId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test Scenarios",
+      "item": [
+        {
+          "name": "Complete Family Flow",
+          "item": [
+            {
+              "name": "1. Create Family",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"family\",\n  \"name\": \"Famille Test Flow\",\n  \"language\": \"fr\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["groups"]
+                }
+              }
+            },
+            {
+              "name": "2. Get Created Family",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{familyGroupId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["groups", "{{familyGroupId}}"]
+                }
+              }
+            },
+            {
+              "name": "3. Connect with Code",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/code/{{familyCode}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["groups", "code", "{{familyCode}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete Classroom Flow",
+          "item": [
+            {
+              "name": "1. Create Classroom",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"classroom\",\n  \"name\": \"Classe Test Flow\",\n  \"language\": \"fr\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/groups",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["groups"]
+                }
+              }
+            },
+            {
+              "name": "2. Get Created Classroom",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/{{classroomGroupId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["groups", "{{classroomGroupId}}"]
+                }
+              }
+            },
+            {
+              "name": "3. Connect with Code",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/groups/code/{{classroomCode}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["groups", "code", "{{classroomCode}}"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

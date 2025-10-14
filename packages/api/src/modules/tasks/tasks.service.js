@@ -1,15 +1,14 @@
 import prisma from '../../config/database.js';
-import { TASK_CATEGORIES } from 'shared/constants';
 
 /**
  * Créer un template de tâche
  */
-export async function createTaskTemplate({ familyId, title, category, icon, points, recurrence, description }) {
+export async function createTaskTemplate({ groupId, title, categoryId, icon, points, recurrence, description }) {
   const taskTemplate = await prisma.taskTemplate.create({
     data: {
-      familyId,
+      groupId,
       title,
-      category,
+      categoryId,
       icon,
       points,
       recurrence,
@@ -23,9 +22,12 @@ export async function createTaskTemplate({ familyId, title, category, icon, poin
 /**
  * Récupérer tous les templates de tâches d'une famille
  */
-export async function getTaskTemplates(familyId) {
+export async function getTaskTemplates(groupId) {
   const templates = await prisma.taskTemplate.findMany({
-    where: { familyId },
+    where: { groupId },
+    include: {
+      category: true,
+    },
     orderBy: { createdAt: 'desc' },
   });
 
@@ -35,12 +37,12 @@ export async function getTaskTemplates(familyId) {
 /**
  * Mettre à jour un template de tâche
  */
-export async function updateTaskTemplate(templateId, familyId, updates) {
+export async function updateTaskTemplate(templateId, groupId, updates) {
   // Vérifier que le template appartient à la famille
   const template = await prisma.taskTemplate.findFirst({
     where: {
       id: templateId,
-      familyId,
+      groupId,
     },
   });
 
@@ -51,6 +53,9 @@ export async function updateTaskTemplate(templateId, familyId, updates) {
   const updatedTemplate = await prisma.taskTemplate.update({
     where: { id: templateId },
     data: updates,
+    include: {
+      category: true,
+    },
   });
 
   return updatedTemplate;
@@ -59,11 +64,11 @@ export async function updateTaskTemplate(templateId, familyId, updates) {
 /**
  * Supprimer un template de tâche
  */
-export async function deleteTaskTemplate(templateId, familyId) {
+export async function deleteTaskTemplate(templateId, groupId) {
   const template = await prisma.taskTemplate.findFirst({
     where: {
       id: templateId,
-      familyId,
+      groupId,
     },
   });
 
@@ -216,7 +221,7 @@ export async function selfEvaluateTask(taskId, childId, score) {
   // Vérifier fenêtre horaire
   const { getWindow, isWithinWindow } = await import('../evalWindow/evalWindow.service.js');
   const child = await prisma.user.findUnique({ where: { id: childId } });
-  const window = await getWindow(child.familyId, childId);
+  const window = await getWindow(child.groupId, childId);
   if (!isWithinWindow(window)) {
     throw new Error("Autoévaluation indisponible en dehors de la fenêtre autorisée");
   }
@@ -269,7 +274,7 @@ export async function validateTask(taskId, parentFamilyId, score, comment) {
   }
 
   // Vérifier que le parent appartient à la même famille
-  if (task.user.familyId !== parentFamilyId) {
+  if (task.user.groupId !== parentFamilyId) {
     throw new Error('Accès non autorisé');
   }
 

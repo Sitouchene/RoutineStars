@@ -5,7 +5,7 @@ const taskAssignmentSchema = z.object({
   taskTemplateId: z.string().uuid(),
   childId: z.string().uuid(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format de date invalide (YYYY-MM-DD)'),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format de date invalide (YYYY-MM-DD)'),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format de date invalide (YYYY-MM-DD)').optional(),
   isActive: z.boolean().default(true),
 });
 
@@ -21,7 +21,10 @@ const updateAssignmentSchema = z.object({
 export async function createAssignmentController(req, res, next) {
   try {
     const validatedData = taskAssignmentSchema.parse(req.body);
-    const assignment = await assignmentsService.createTaskAssignment(validatedData);
+    const assignment = await assignmentsService.createTaskAssignment({
+      ...validatedData,
+      groupId: req.user.groupId
+    });
     res.status(201).json(assignment);
   } catch (error) {
     next(error);
@@ -31,9 +34,9 @@ export async function createAssignmentController(req, res, next) {
 /**
  * GET /api/assignments
  */
-export async function getFamilyAssignmentsController(req, res, next) {
+export async function getGroupAssignmentsController(req, res, next) {
   try {
-    const assignments = await assignmentsService.getFamilyAssignments(req.user.familyId);
+    const assignments = await assignmentsService.getGroupAssignments(req.user.groupId);
     res.json(assignments);
   } catch (error) {
     next(error);
@@ -60,7 +63,7 @@ export async function updateAssignmentController(req, res, next) {
     const validatedData = updateAssignmentSchema.parse(req.body);
     const assignment = await assignmentsService.updateTaskAssignment(
       req.params.id,
-      req.user.familyId,
+      req.user.groupId,
       validatedData
     );
     res.json(assignment);
@@ -76,7 +79,7 @@ export async function deleteAssignmentController(req, res, next) {
   try {
     const result = await assignmentsService.deleteTaskAssignment(
       req.params.id,
-      req.user.familyId
+      req.user.groupId
     );
     res.json(result);
   } catch (error) {

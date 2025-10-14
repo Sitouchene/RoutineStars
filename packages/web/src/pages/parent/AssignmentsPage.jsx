@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit, Trash2, Calendar, User, Play, Pause } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
@@ -12,6 +13,7 @@ export default function AssignmentsPage() {
   const [editingAssignment, setEditingAssignment] = useState(null);
   const { getAuthHeader, user } = useAuthStore();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   // Récupérer les assignations de la famille
   const {
@@ -19,23 +21,23 @@ export default function AssignmentsPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['assignments', user?.familyId],
+    queryKey: ['assignments', user?.groupId],
     queryFn: () => assignmentsApi.getAll(getAuthHeader()),
-    enabled: !!user?.familyId,
+    enabled: !!user?.groupId,
   });
 
   // Récupérer les enfants pour les statistiques
   const { data: children = [] } = useQuery({
-    queryKey: ['children', user?.familyId],
+    queryKey: ['children', user?.groupId],
     queryFn: () => childrenApi.getAll(getAuthHeader()),
-    enabled: !!user?.familyId,
+    enabled: !!user?.groupId,
   });
 
   // Mutation pour supprimer une assignation
   const deleteAssignmentMutation = useMutation({
     mutationFn: assignmentId => assignmentsApi.delete(assignmentId, getAuthHeader()),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assignments', user?.familyId] });
+      queryClient.invalidateQueries({ queryKey: ['assignments', user?.groupId] });
     },
   });
 
@@ -44,7 +46,7 @@ export default function AssignmentsPage() {
     mutationFn: ({ assignmentId, isActive }) => 
       assignmentsApi.update(assignmentId, { isActive }, getAuthHeader()),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assignments', user?.familyId] });
+      queryClient.invalidateQueries({ queryKey: ['assignments', user?.groupId] });
     },
   });
 
@@ -53,16 +55,16 @@ export default function AssignmentsPage() {
     mutationFn: ({ childId, date }) => 
       assignmentsApi.generateDaily(childId, date, getAuthHeader()),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assignments', user?.familyId] });
+      queryClient.invalidateQueries({ queryKey: ['assignments', user?.groupId] });
     },
   });
 
   const handleDelete = async assignmentId => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette assignation ?')) {
+    if (window.confirm(t('assignments.deleteConfirm'))) {
       try {
         await deleteAssignmentMutation.mutateAsync(assignmentId);
       } catch (error) {
-        alert('Erreur lors de la suppression : ' + error.message);
+        alert(t('common.error') + ' : ' + error.message);
       }
     }
   };
@@ -117,7 +119,7 @@ export default function AssignmentsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Chargement des assignations...</div>
+        <div className="text-gray-500">{t('assignments.loading')}</div>
       </div>
     );
   }
@@ -126,13 +128,13 @@ export default function AssignmentsPage() {
     return (
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">
-          Erreur lors du chargement des assignations
+          {t('assignments.error')}
         </div>
         <button
-          onClick={() => queryClient.invalidateQueries({ queryKey: ['assignments', user?.familyId] })}
+          onClick={() => queryClient.invalidateQueries({ queryKey: ['assignments', user?.groupId] })}
           className="btn btn-primary"
         >
-          Réessayer
+          {t('assignments.retry')}
         </button>
       </div>
     );
@@ -143,9 +145,9 @@ export default function AssignmentsPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Assignations des tâches</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('assignments.manage.title')}</h2>
           <p className="text-gray-600">
-            Gérez quelles tâches sont assignées à vos enfants
+            {t('assignments.manage.subtitle')}
           </p>
         </div>
         <button
@@ -153,24 +155,24 @@ export default function AssignmentsPage() {
           className="btn btn-primary flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
-          Assigner une tâche
+          {t('assignments.assignTaskCta')}
         </button>
       </div>
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="card">
-          <h3 className="font-semibold text-lg mb-2">Enfants</h3>
+          <h3 className="font-semibold text-lg mb-2">{t('assignments.stats.children')}</h3>
           <p className="text-3xl font-bold text-primary-600">{children.length}</p>
         </div>
         <div className="card">
-          <h3 className="font-semibold text-lg mb-2">Assignations actives</h3>
+          <h3 className="font-semibold text-lg mb-2">{t('assignments.stats.active')}</h3>
           <p className="text-3xl font-bold text-primary-600">
             {assignments.filter(isAssignmentActive).length}
           </p>
         </div>
         <div className="card">
-          <h3 className="font-semibold text-lg mb-2">Total assignations</h3>
+          <h3 className="font-semibold text-lg mb-2">{t('assignments.stats.total')}</h3>
           <p className="text-3xl font-bold text-primary-600">{assignments.length}</p>
         </div>
       </div>
@@ -180,16 +182,16 @@ export default function AssignmentsPage() {
         <div className="text-center py-12">
           <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Aucune assignation
+            {t('assignments.none')}
           </h3>
           <p className="text-gray-500 mb-6">
-            Commencez par assigner des tâches à vos enfants
+            {t('assignments.noneDesc')}
           </p>
           <button
             onClick={() => setShowAssignModal(true)}
             className="btn btn-primary"
           >
-            Assigner ma première tâche
+            {t('assignments.createFirst')}
           </button>
         </div>
       ) : (
@@ -232,7 +234,7 @@ export default function AssignmentsPage() {
                   <button
                     onClick={() => handleGenerateTasks(assignment.child.id)}
                     className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                    title="Générer les tâches d'aujourd'hui"
+                    title={t('assignments.generateToday')}
                     disabled={generateTasksMutation.isPending}
                   >
                     <Play className="w-4 h-4" />
@@ -245,7 +247,7 @@ export default function AssignmentsPage() {
                         ? 'text-gray-400 hover:text-orange-600'
                         : 'text-gray-400 hover:text-green-600'
                     }`}
-                    title={assignment.isActive ? 'Désactiver' : 'Activer'}
+                    title={assignment.isActive ? t('assignments.deactivate') : t('assignments.activate')}
                     disabled={toggleAssignmentMutation.isPending}
                   >
                     {assignment.isActive ? (
@@ -258,7 +260,7 @@ export default function AssignmentsPage() {
                   <button
                     onClick={() => setEditingAssignment(assignment)}
                     className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                    title="Modifier"
+                    title={t('common.edit')}
                   >
                     <Edit className="w-4 h-4" />
                   </button>
@@ -266,7 +268,7 @@ export default function AssignmentsPage() {
                   <button
                     onClick={() => handleDelete(assignment.id)}
                     className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                    title="Supprimer"
+                    title={t('common.delete')}
                     disabled={deleteAssignmentMutation.isPending}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -284,7 +286,7 @@ export default function AssignmentsPage() {
           onClose={() => setShowAssignModal(false)}
           onSuccess={() => {
             setShowAssignModal(false);
-            queryClient.invalidateQueries({ queryKey: ['assignments', user?.familyId] });
+            queryClient.invalidateQueries({ queryKey: ['assignments', user?.groupId] });
           }}
         />
       )}
@@ -295,7 +297,7 @@ export default function AssignmentsPage() {
           onClose={() => setEditingAssignment(null)}
           onSuccess={() => {
             setEditingAssignment(null);
-            queryClient.invalidateQueries({ queryKey: ['assignments', user?.familyId] });
+            queryClient.invalidateQueries({ queryKey: ['assignments', user?.groupId] });
           }}
         />
       )}

@@ -14,7 +14,7 @@ export async function getChildDailyStatsController(req, res, next) {
       const child = await prisma.user.findFirst({
         where: {
           id: childId,
-          familyId: req.user.familyId,
+          groupId: req.user.groupId,
           role: 'child',
         },
       });
@@ -45,7 +45,7 @@ export async function getChildWeeklyStatsController(req, res, next) {
       const child = await prisma.user.findFirst({
         where: {
           id: childId,
-          familyId: req.user.familyId,
+          groupId: req.user.groupId,
           role: 'child',
         },
       });
@@ -76,7 +76,7 @@ export async function getChildMonthlyStatsController(req, res, next) {
       const child = await prisma.user.findFirst({
         where: {
           id: childId,
-          familyId: req.user.familyId,
+          groupId: req.user.groupId,
           role: 'child',
         },
       });
@@ -98,7 +98,7 @@ export async function getChildMonthlyStatsController(req, res, next) {
 /**
  * GET /api/stats/family/:startDate/:endDate
  */
-export async function getFamilyStatsController(req, res, next) {
+export async function getGroupStatsController(req, res, next) {
   try {
     const { startDate, endDate } = req.params;
     
@@ -106,7 +106,7 @@ export async function getFamilyStatsController(req, res, next) {
       return res.status(403).json({ error: 'Accès réservé aux parents' });
     }
 
-    const stats = await statsService.getFamilyStats(req.user.familyId, startDate, endDate);
+    const stats = await statsService.getGroupStats(req.user.groupId, startDate, endDate);
     res.json(stats);
   } catch (error) {
     next(error);

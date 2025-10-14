@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { assignmentsApi, childrenApi, tasksApi } from '../../lib/api-client';
 
 export default function AssignTaskModal({ onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     taskTemplateId: '',
     childId: '',
@@ -17,15 +19,15 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
 
   // Récupérer les enfants et tâches disponibles
   const { data: children = [] } = useQuery({
-    queryKey: ['children', user?.familyId],
+    queryKey: ['children', user?.groupId],
     queryFn: () => childrenApi.getAll(getAuthHeader()),
-    enabled: !!user?.familyId,
+    enabled: !!user?.groupId,
   });
 
   const { data: taskTemplates = [] } = useQuery({
-    queryKey: ['taskTemplates', user?.familyId],
+    queryKey: ['taskTemplates', user?.groupId],
     queryFn: () => tasksApi.getTemplates(getAuthHeader()),
-    enabled: !!user?.familyId,
+    enabled: !!user?.groupId,
   });
 
   const assignTaskMutation = useMutation({
@@ -52,22 +54,22 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
 
     // Validation
     if (!formData.taskTemplateId) {
-      setError('Veuillez sélectionner une tâche');
+      setError(t('assignModal.selectTaskRequired'));
       return;
     }
 
     if (!formData.childId) {
-      setError('Veuillez sélectionner un enfant');
+      setError(t('assignModal.selectChildRequired'));
       return;
     }
 
     if (!formData.startDate) {
-      setError('La date de début est requise');
+      setError(t('assignModal.startDateRequired'));
       return;
     }
 
     if (formData.endDate && formData.endDate < formData.startDate) {
-      setError('La date de fin doit être après la date de début');
+      setError(t('assignModal.endAfterStart'));
       return;
     }
 
@@ -87,7 +89,7 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-gray-900">
-            Assigner une tâche
+            {t('assignModal.title')}
           </h3>
           <button
             onClick={onClose}
@@ -101,7 +103,7 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tâche *
+              {t('assignModal.taskLabel')} *
             </label>
             <select
               name="taskTemplateId"
@@ -110,10 +112,10 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               required
             >
-              <option value="">Sélectionner une tâche</option>
+              <option value="">{t('assignModal.taskPlaceholder')}</option>
               {taskTemplates.map(template => (
                 <option key={template.id} value={template.id}>
-                  {template.icon || '📋'} {template.title} ({template.category})
+                  {template.icon || '📋'} {template.title}
                 </option>
               ))}
             </select>
@@ -121,7 +123,7 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Enfant *
+              {t('assignModal.childLabel')} *
             </label>
             <select
               name="childId"
@@ -130,10 +132,10 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               required
             >
-              <option value="">Sélectionner un enfant</option>
+              <option value="">{t('assignments.addChild')}</option>
               {children.map(child => (
                 <option key={child.id} value={child.id}>
-                  {child.name} ({child.age} ans)
+                  {child.name} ({t('children.age', { count: child.age })})
                 </option>
               ))}
             </select>
@@ -141,7 +143,7 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date de début *
+              {t('assignModal.startDate')} *
             </label>
             <input
               type="date"
@@ -155,7 +157,7 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date de fin (optionnel)
+              {t('assignModal.endDate')} ({t('common.optional')})
             </label>
             <input
               type="date"
@@ -165,7 +167,7 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Laissez vide pour une assignation permanente
+              {t('assignModal.endDateHelp')}
             </p>
           </div>
 
@@ -178,7 +180,7 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
               className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
             />
             <label className="text-sm font-medium text-gray-700">
-              Activer immédiatement cette assignation
+              {t('assignModal.activateNow')}
             </label>
           </div>
 
@@ -196,14 +198,14 @@ export default function AssignTaskModal({ onClose, onSuccess }) {
               className="flex-1 btn btn-secondary"
               disabled={assignTaskMutation.isPending}
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="flex-1 btn btn-primary"
               disabled={assignTaskMutation.isPending}
             >
-              {assignTaskMutation.isPending ? 'Assignation...' : 'Assigner'}
+              {assignTaskMutation.isPending ? t('assignModal.assigning') : t('assignModal.assign')}
             </button>
           </div>
         </form>

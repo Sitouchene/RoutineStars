@@ -3,18 +3,20 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../stores/authStore';
 import { statsApi, childrenApi } from '../../lib/api-client';
 import { Calendar, BarChart3, TrendingUp, Award, Clock, Target } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function StatsPage() {
   const [selectedChild, setSelectedChild] = useState(null);
   const [viewMode, setViewMode] = useState('daily'); // daily, weekly, monthly
   const [selectedDate, setSelectedDate] = useState(formatLocalDate(new Date()));
-  const { getAuthHeader, user } = useAuthStore();
+  const { getAuthHeader, user, group } = useAuthStore();
+  const { t, i18n } = useTranslation();
 
   // Récupérer la liste des enfants
   const { data: children = [] } = useQuery({
-    queryKey: ['children', user?.familyId],
+    queryKey: ['children', user?.groupId],
     queryFn: () => childrenApi.getAll(getAuthHeader()),
-    enabled: !!user?.familyId,
+    enabled: !!user?.groupId,
   });
 
   // Sélectionner le premier enfant par défaut
@@ -25,25 +27,27 @@ export default function StatsPage() {
   }, [children, selectedChild]);
 
   const viewModes = [
-    { key: 'daily', label: 'Jour', icon: Calendar },
-    { key: 'weekly', label: 'Semaine', icon: BarChart3 },
-    { key: 'monthly', label: 'Mois', icon: TrendingUp },
+    { key: 'daily', label: t('stats.daily'), icon: Calendar },
+    { key: 'weekly', label: t('stats.weekly'), icon: BarChart3 },
+    { key: 'monthly', label: t('stats.monthly'), icon: TrendingUp },
   ];
+
+  const membersKey = group?.type === 'classroom' ? t('dashboard.members.students') : t('dashboard.members.children');
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Statistiques</h1>
-          <p className="text-gray-600">Suivez les progrès de vos enfants</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('stats.title')}</h1>
+          <p className="text-gray-600">{t('stats.description', { members: membersKey })}</p>
         </div>
       </div>
 
       {/* Sélection d'enfant */}
       {children.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h3 className="font-semibold text-gray-900 mb-3">Sélectionner un enfant</h3>
+          <h3 className="font-semibold text-gray-900 mb-3">{t('stats.selectChild')}</h3>
           <div className="flex gap-2 flex-wrap">
             {children.map(child => (
               <button
@@ -55,7 +59,7 @@ export default function StatsPage() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {child.name} ({child.age} ans)
+                {child.name} ({child.age})
               </button>
             ))}
           </div>
@@ -64,7 +68,7 @@ export default function StatsPage() {
 
       {/* Sélection de vue */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <h3 className="font-semibold text-gray-900 mb-3">Type de vue</h3>
+        <h3 className="font-semibold text-gray-900 mb-3">{t('stats.viewType')}</h3>
         <div className="flex gap-2">
           {viewModes.map(mode => (
             <button
@@ -92,7 +96,7 @@ export default function StatsPage() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">{selectedChild.name}</h2>
-              <p className="text-gray-600">{selectedChild.age} ans</p>
+              <p className="text-gray-600">{selectedChild.age}</p>
             </div>
           </div>
 
@@ -126,9 +130,9 @@ export default function StatsPage() {
 
       {children.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-gray-500 mb-4">Aucun enfant trouvé</div>
+          <div className="text-gray-500 mb-4">{t('stats.noChildren')}</div>
           <p className="text-sm text-gray-400">
-            Ajoutez des enfants pour voir leurs statistiques
+            {t('stats.noChildrenHelp')}
           </p>
         </div>
       )}
@@ -155,6 +159,7 @@ function formatLocalDate(dateObj) {
 
 // Composant pour la vue quotidienne
 function DailyStatsView({ childId, date, onDateChange, getAuthHeader }) {
+  const { t } = useTranslation();
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ['dailyStats', childId, date],
     queryFn: () => statsApi.getChildDailyStats(childId, date, getAuthHeader()),
@@ -162,15 +167,15 @@ function DailyStatsView({ childId, date, onDateChange, getAuthHeader }) {
   });
 
   if (isLoading) {
-    return <div className="text-center py-8">Chargement des statistiques...</div>;
+    return <div className="text-center py-8">{t('stats.loading')}</div>;
   }
 
   if (error) {
-    return <div className="text-center py-8 text-red-600">Erreur lors du chargement</div>;
+    return <div className="text-center py-8 text-red-600">{t('stats.error')}</div>;
   }
 
   if (!stats) {
-    return <div className="text-center py-8 text-gray-500">Aucune donnée pour cette date</div>;
+    return <div className="text-center py-8 text-gray-500">{t('stats.noDataDay')}</div>;
   }
 
   return (
@@ -193,7 +198,7 @@ function DailyStatsView({ childId, date, onDateChange, getAuthHeader }) {
             <Target className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-blue-600">{stats.completionRate}%</h3>
-          <p className="text-sm text-blue-700">Taux de réalisation</p>
+          <p className="text-sm text-blue-700">{t('stats.completionRate')}</p>
         </div>
 
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
@@ -201,7 +206,7 @@ function DailyStatsView({ childId, date, onDateChange, getAuthHeader }) {
             <Award className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-green-600">{stats.earnedPoints}</h3>
-          <p className="text-sm text-green-700">Points gagnés</p>
+          <p className="text-sm text-green-700">{t('stats.earnedPoints')}</p>
         </div>
 
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
@@ -209,14 +214,14 @@ function DailyStatsView({ childId, date, onDateChange, getAuthHeader }) {
             <Clock className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-purple-600">{stats.totalTasks}</h3>
-          <p className="text-sm text-purple-700">Tâches validées</p>
+          <p className="text-sm text-purple-700">{t('stats.validatedTasks')}</p>
         </div>
       </div>
 
       {/* Détail des tâches */}
       {stats.tasks.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Détail des tâches</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('stats.tasksDetail')}</h3>
           <div className="space-y-3">
             {stats.tasks.map(task => (
               <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -224,12 +229,12 @@ function DailyStatsView({ childId, date, onDateChange, getAuthHeader }) {
                   <span className="text-lg">{getCategoryIcon(task.category)}</span>
                   <div>
                     <h4 className="font-medium text-gray-900">{task.title}</h4>
-                    <p className="text-sm text-gray-600">{task.points} points</p>
+                    <p className="text-sm text-gray-600">{task.points} {t('tasks.pointsSuffix')}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-semibold text-gray-900">{task.score}%</div>
-                  <div className="text-sm text-gray-600">{task.earnedPoints} pts</div>
+                  <div className="text-sm text-gray-600">{task.earnedPoints} {t('tasks.pointsSuffix')}</div>
                 </div>
               </div>
             ))}
@@ -242,6 +247,7 @@ function DailyStatsView({ childId, date, onDateChange, getAuthHeader }) {
 
 // Composant pour la vue hebdomadaire
 function WeeklyStatsView({ childId, startDate, getAuthHeader }) {
+  const { t } = useTranslation();
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ['weeklyStats', childId, startDate],
     queryFn: () => statsApi.getChildWeeklyStats(childId, startDate, getAuthHeader()),
@@ -249,15 +255,15 @@ function WeeklyStatsView({ childId, startDate, getAuthHeader }) {
   });
 
   if (isLoading) {
-    return <div className="text-center py-8">Chargement des statistiques...</div>;
+    return <div className="text-center py-8">{t('stats.loading')}</div>;
   }
 
   if (error) {
-    return <div className="text-center py-8 text-red-600">Erreur lors du chargement</div>;
+    return <div className="text-center py-8 text-red-600">{t('stats.error')}</div>;
   }
 
   if (!stats) {
-    return <div className="text-center py-8 text-gray-500">Aucune donnée pour cette semaine</div>;
+    return <div className="text-center py-8 text-gray-500">{t('stats.noDataWeek')}</div>;
   }
 
   return (
@@ -269,7 +275,7 @@ function WeeklyStatsView({ childId, startDate, getAuthHeader }) {
             <Target className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-blue-600">{stats.weeklyCompletionRate}%</h3>
-          <p className="text-sm text-blue-700">Taux moyen de la semaine</p>
+          <p className="text-sm text-blue-700">{t('stats.weeklyAvg')}</p>
         </div>
 
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
@@ -277,7 +283,7 @@ function WeeklyStatsView({ childId, startDate, getAuthHeader }) {
             <Award className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-green-600">{stats.totalWeekEarnedPoints}</h3>
-          <p className="text-sm text-green-700">Points gagnés cette semaine</p>
+          <p className="text-sm text-green-700">{t('stats.weekEarnedPoints')}</p>
         </div>
 
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
@@ -285,21 +291,20 @@ function WeeklyStatsView({ childId, startDate, getAuthHeader }) {
             <BarChart3 className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-purple-600">{stats.totalWeekPoints}</h3>
-          <p className="text-sm text-purple-700">Points totaux possibles</p>
+          <p className="text-sm text-purple-700">{t('stats.weekTotalPoints')}</p>
         </div>
       </div>
 
       {/* Graphique des jours */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Progression de la semaine</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('stats.weekProgress')}</h3>
         <div className="grid grid-cols-7 gap-2">
           {stats.dailyStats.map((dayStats) => {
             const [yy, mm, dd] = dayStats.date.split('-').map(Number);
             const date = new Date(yy, mm - 1, dd);
             const dayNumber = date.getDate();
             const dow = date.getDay(); // 0=Dim,1=Lun,...
-            const dayNamesByDow = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-            const dayName = dayNamesByDow[dow];
+            const dayName = t(`stats.daysShort.${(dow + 6) % 7}`); // map Dim..Sam -> 6..5
             
             return (
               <div key={dayStats.date} className="text-center">
@@ -315,7 +320,7 @@ function WeeklyStatsView({ childId, startDate, getAuthHeader }) {
                   </div>
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {dayStats.earnedPoints}pts
+                  {dayStats.earnedPoints}{t('tasks.pointsSuffix')}
                 </div>
               </div>
             );
@@ -328,6 +333,7 @@ function WeeklyStatsView({ childId, startDate, getAuthHeader }) {
 
 // Composant pour la vue mensuelle
 function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
+  const { t } = useTranslation();
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ['monthlyStats', childId, year, month],
     queryFn: () => statsApi.getChildMonthlyStats(childId, year, month, getAuthHeader()),
@@ -335,15 +341,15 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
   });
 
   if (isLoading) {
-    return <div className="text-center py-8">Chargement des statistiques...</div>;
+    return <div className="text-center py-8">{t('stats.loading')}</div>;
   }
 
   if (error) {
-    return <div className="text-center py-8 text-red-600">Erreur lors du chargement</div>;
+    return <div className="text-center py-8 text-red-600">{t('stats.error')}</div>;
   }
 
   if (!stats) {
-    return <div className="text-center py-8 text-gray-500">Aucune donnée pour ce mois</div>;
+    return <div className="text-center py-8 text-gray-500">{t('stats.noDataMonth')}</div>;
   }
 
   const monthNames = [
@@ -360,7 +366,7 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
             <Target className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-blue-600">{stats.monthlyCompletionRate}%</h3>
-          <p className="text-sm text-blue-700">Taux moyen du mois</p>
+          <p className="text-sm text-blue-700">{t('stats.weeklyAvg')}</p>
         </div>
 
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
@@ -368,7 +374,7 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
             <Award className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-green-600">{stats.totalMonthEarnedPoints}</h3>
-          <p className="text-sm text-green-700">Points gagnés ce mois</p>
+          <p className="text-sm text-green-700">{t('stats.earnedPoints')}</p>
         </div>
 
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
@@ -376,7 +382,7 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
             <TrendingUp className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-purple-600">{stats.totalMonthPoints}</h3>
-          <p className="text-sm text-purple-700">Points totaux possibles</p>
+          <p className="text-sm text-purple-700">{t('stats.weekTotalPoints')}</p>
         </div>
       </div>
 
@@ -387,7 +393,7 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
         </h3>
         <div className="grid grid-cols-7 gap-1 text-center">
           {/* En-têtes des jours */}
-          {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
+          {[t('stats.daysShort.0'), t('stats.daysShort.1'), t('stats.daysShort.2'), t('stats.daysShort.3'), t('stats.daysShort.4'), t('stats.daysShort.5'), t('stats.daysShort.6')].map(day => (
             <div key={day} className="p-2 text-sm font-medium text-gray-600">
               {day}
             </div>
@@ -424,7 +430,7 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
                   {dayStats && (
                     <>
                       <div className="text-xs font-semibold text-gray-700">{dayStats.completionRate}%</div>
-                      <div className="text-xs text-gray-600">{dayStats.earnedPoints}pts</div>
+                      <div className="text-xs text-gray-600">{dayStats.earnedPoints}{t('tasks.pointsSuffix')}</div>
                     </>
                   )}
                 </div>
@@ -446,5 +452,7 @@ function getCategoryIcon(category) {
     'maison': '🏠',
     'etudes': '📚',
   };
-  return icons[category] || '📋';
+  // Gérer les objets Category ou les chaînes
+  const categoryKey = typeof category === 'object' ? category?.title : category;
+  return icons[categoryKey] || category?.icon || '📋';
 }

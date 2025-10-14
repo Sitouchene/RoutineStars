@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit, Trash2, Calendar, Clock } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
@@ -12,6 +13,7 @@ export default function TasksPage() {
   const [editingTask, setEditingTask] = useState(null);
   const { getAuthHeader, user } = useAuthStore();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   // Récupérer la liste des templates de tâches
   const {
@@ -19,25 +21,25 @@ export default function TasksPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['taskTemplates', user?.familyId],
+    queryKey: ['taskTemplates', user?.groupId],
     queryFn: () => tasksApi.getTemplates(getAuthHeader()),
-    enabled: !!user?.familyId,
+    enabled: !!user?.groupId,
   });
 
   // Mutation pour supprimer un template
   const deleteTaskMutation = useMutation({
     mutationFn: templateId => tasksApi.deleteTemplate(templateId, getAuthHeader()),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['taskTemplates', user?.familyId] });
+      queryClient.invalidateQueries({ queryKey: ['taskTemplates', user?.groupId] });
     },
   });
 
   const handleDelete = async templateId => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce template de tâche ?')) {
+    if (window.confirm(t('tasks.deleteConfirm'))) {
       try {
         await deleteTaskMutation.mutateAsync(templateId);
       } catch (error) {
-        alert('Erreur lors de la suppression : ' + error.message);
+        alert(t('common.error') + ' : ' + error.message);
       }
     }
   };
@@ -58,7 +60,7 @@ export default function TasksPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Chargement des tâches...</div>
+        <div className="text-gray-500">{t('common.loading')}</div>
       </div>
     );
   }
@@ -67,13 +69,13 @@ export default function TasksPage() {
     return (
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">
-          Erreur lors du chargement des tâches
+          {t('common.error')}
         </div>
         <button
-          onClick={() => queryClient.invalidateQueries({ queryKey: ['taskTemplates', user?.familyId] })}
+          onClick={() => queryClient.invalidateQueries({ queryKey: ['taskTemplates', user?.groupId] })}
           className="btn btn-primary"
         >
-          Réessayer
+          {t('common.retry') || 'Réessayer'}
         </button>
       </div>
     );
@@ -84,9 +86,9 @@ export default function TasksPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Gestion des tâches</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('tasks.manage.title')}</h2>
           <p className="text-gray-600">
-            Créez et gérez les modèles de tâches pour vos enfants
+            {t('tasks.manage.subtitle')}
           </p>
         </div>
         <button
@@ -94,7 +96,7 @@ export default function TasksPage() {
           className="btn btn-primary flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
-          Créer une tâche
+          {t('tasks.add')}
         </button>
       </div>
 
@@ -103,16 +105,16 @@ export default function TasksPage() {
         <div className="text-center py-12">
           <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Aucune tâche créée
+            {t('tasks.none')}
           </h3>
           <p className="text-gray-500 mb-6">
-            Commencez par créer votre premier modèle de tâche
+            {t('tasks.noneDesc')}
           </p>
           <button
             onClick={() => setShowAddModal(true)}
             className="btn btn-primary"
           >
-            Créer ma première tâche
+            {t('tasks.createFirst')}
           </button>
         </div>
       ) : (
@@ -141,7 +143,7 @@ export default function TasksPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-blue-500" />
                   <span className="text-xs text-gray-500">
-                    {template.points} pts
+                    {template.points} {t('tasks.pointsSuffix')}
                   </span>
                 </div>
               </div>
@@ -186,7 +188,7 @@ export default function TasksPage() {
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {
             setShowAddModal(false);
-            queryClient.invalidateQueries({ queryKey: ['taskTemplates', user?.familyId] });
+            queryClient.invalidateQueries({ queryKey: ['taskTemplates', user?.groupId] });
           }}
         />
       )}
@@ -197,7 +199,7 @@ export default function TasksPage() {
           onClose={() => setEditingTask(null)}
           onSuccess={() => {
             setEditingTask(null);
-            queryClient.invalidateQueries({ queryKey: ['taskTemplates', user?.familyId] });
+            queryClient.invalidateQueries({ queryKey: ['taskTemplates', user?.groupId] });
           }}
         />
       )}

@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Search, Filter, Star, Calendar, BookOpen } from 'lucide-react';
 import { TEMPLATE_TASKS, getTemplateTaskCategories, searchTemplateTasks } from '../../data/templateTasks';
 import { TASK_CATEGORIES, TASK_RECURRENCE } from 'shared/constants';
 
 export default function TemplateTaskSelector({ onSelect, onClose }) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -40,11 +42,11 @@ export default function TemplateTaskSelector({ onSelect, onClose }) {
 
   const getRecurrenceText = (recurrence) => {
     switch (recurrence) {
-      case 'daily': return 'Quotidien';
-      case 'weekday': return 'Jours de semaine';
-      case 'weekly': return 'Hebdomadaire';
-      case 'monthly': return 'Mensuel';
-      default: return 'Personnalisé';
+      case 'daily': return t('tasks.recurrence.daily');
+      case 'weekday': return t('tasks.recurrence.weekday');
+      case 'weekly': return t('tasks.recurrence.weekly');
+      case 'monthly': return t('tasks.recurrence.monthly');
+      default: return t('tasks.recurrence.custom');
     }
   };
 
@@ -64,8 +66,8 @@ export default function TemplateTaskSelector({ onSelect, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Bibliothèque de tâches</h2>
-            <p className="text-gray-600 mt-1">Choisissez une tâche prédéfinie à personnaliser</p>
+            <h2 className="text-2xl font-bold text-gray-900">{t('templateSelector.title')}</h2>
+            <p className="text-gray-600 mt-1">{t('templateSelector.subtitle')}</p>
           </div>
           <button
             onClick={onClose}
@@ -84,7 +86,7 @@ export default function TemplateTaskSelector({ onSelect, onClose }) {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Rechercher une tâche..."
+                  placeholder={t('templateSelector.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -99,7 +101,7 @@ export default function TemplateTaskSelector({ onSelect, onClose }) {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="">Toutes les catégories</option>
+                <option value="">{t('templateSelector.allCategories')}</option>
                 {categories.map(category => (
                   <option key={category} value={category}>
                     {getCategoryIcon(category)} {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -114,7 +116,7 @@ export default function TemplateTaskSelector({ onSelect, onClose }) {
         <div className="p-6 overflow-y-auto max-h-96">
           {filteredTasks.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-gray-500">Aucune tâche trouvée</div>
+              <div className="text-gray-500">{t('templateSelector.none')}</div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -139,7 +141,7 @@ export default function TemplateTaskSelector({ onSelect, onClose }) {
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <div className="flex items-center gap-1">
                           <Star className="w-3 h-3" />
-                          {template.points} pts
+                          {template.points} 🪙
                         </div>
                         <div className="flex items-center gap-1">
                           {getRecurrenceIcon(template.recurrence)}
@@ -164,14 +166,14 @@ export default function TemplateTaskSelector({ onSelect, onClose }) {
             onClick={onClose}
             className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors"
           >
-            Annuler
+            {t('templateSelector.cancel')}
           </button>
           <button
             onClick={handleConfirm}
             disabled={!selectedTemplate}
             className="px-6 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
           >
-            Utiliser cette tâche
+            {t('templateSelector.useTask')}
           </button>
         </div>
       </div>
