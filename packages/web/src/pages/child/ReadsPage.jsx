@@ -86,10 +86,12 @@ export default function ReadsPage() {
 
   if (isLoading) {
     return (
-      <div>
-        <ChildHeader title={t('child.reads.title')} subtitle={t('child.reads.subtitle')} />
-        <div className="text-center py-12">
-          <div className="text-gray-500">Chargement de tes lectures...</div>
+      <div className="min-h-screen bg-gradient-mootify p-4">
+        <div className="max-w-4xl mx-auto">
+          <ChildHeader title={t('child.reads.title')} subtitle={t('child.reads.subtitle')} />
+          <div className="text-center py-12">
+            <div className="text-gray-500">Chargement de tes lectures...</div>
+          </div>
         </div>
       </div>
     );
@@ -97,22 +99,25 @@ export default function ReadsPage() {
 
   if (readings.length === 0) {
     return (
-      <div>
-        <ChildHeader title={t('child.reads.title')} subtitle={t('child.reads.subtitle')} />
-        <div className="text-center py-12">
-          <BookOpenIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Aucune lecture pour le moment</p>
-          <p className="text-sm text-gray-400 mt-2">Ton parent ou enseignant va bientôt t'en assigner !</p>
+      <div className="min-h-screen bg-gradient-mootify p-4">
+        <div className="max-w-4xl mx-auto">
+          <ChildHeader title={t('child.reads.title')} subtitle={t('child.reads.subtitle')} />
+          <div className="text-center py-12">
+            <BookOpenIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">Aucune lecture pour le moment</p>
+            <p className="text-sm text-gray-400 mt-2">Ton parent ou enseignant va bientôt t'en assigner !</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <ChildHeader title={t('child.reads.title')} subtitle={t('child.reads.subtitle')} />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    <div className="min-h-screen bg-gradient-mootify p-4">
+      <div className="max-w-4xl mx-auto">
+        <ChildHeader title={t('child.reads.title')} subtitle={t('child.reads.subtitle')} />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {readings.map((reading) => {
           const book = reading.book;
           const progress = reading.progress || { currentPage: 0, currentPoints: 0, lastMilestone: 0, isFinished: false };
@@ -197,6 +202,7 @@ export default function ReadsPage() {
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );

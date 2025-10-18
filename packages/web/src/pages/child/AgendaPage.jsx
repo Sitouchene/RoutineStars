@@ -8,22 +8,24 @@ export default function AgendaPage() {
   const [tab, setTab] = useState('week'); // 'week' | 'month'
 
   return (
-    <div>
-      <ChildHeader title={t('child.agenda.title')} subtitle={t('child.agenda.subtitle')} />
+    <div className="min-h-screen bg-gradient-mootify p-4">
+      <div className="max-w-4xl mx-auto">
+        <ChildHeader title={t('child.agenda.title')} subtitle={t('child.agenda.subtitle')} />
 
-      {/* Tabs */}
-      <div className="flex mb-4 bg-gray-100 dark:bg-gray-700 rounded-xl p-1 w-fit">
-        <button
-          onClick={() => setTab('week')}
-          className={`px-4 py-2 rounded-lg font-medium transition-all ${tab==='week' ? 'bg-white dark:bg-anthracite text-brand shadow-sm' : 'text-gray-600 dark:text-gray-300 hover-text-brand'}`}
-        >{t('child.agenda.week')}</button>
-        <button
-          onClick={() => setTab('month')}
-          className={`px-4 py-2 rounded-lg font-medium transition-all ${tab==='month' ? 'bg-white dark:bg-anthracite text-brand shadow-sm' : 'text-gray-600 dark:text-gray-300 hover-text-brand'}`}
-        >{t('child.agenda.month')}</button>
+        {/* Tabs */}
+        <div className="flex mb-4 bg-gray-100 dark:bg-gray-700 rounded-xl p-1 w-fit">
+          <button
+            onClick={() => setTab('week')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${tab==='week' ? 'bg-white dark:bg-anthracite text-brand shadow-sm' : 'text-gray-600 dark:text-gray-300 hover-text-brand'}`}
+          >{t('child.agenda.week')}</button>
+          <button
+            onClick={() => setTab('month')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${tab==='month' ? 'bg-white dark:bg-anthracite text-brand shadow-sm' : 'text-gray-600 dark:text-gray-300 hover-text-brand'}`}
+          >{t('child.agenda.month')}</button>
+        </div>
+
+        {tab === 'week' ? <WeekView /> : <MonthView />}
       </div>
-
-      {tab === 'week' ? <WeekView /> : <MonthView />}
     </div>
   );
 }
