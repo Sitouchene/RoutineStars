@@ -16,7 +16,8 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
   const { t } = useTranslation();
   const [scanResult, setScanResult] = useState(null);
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [cameraStarted, setCameraStarted] = useState(false);
 
   const { ref } = useZxing({
     onDecodeResult(result) {
@@ -57,7 +58,13 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
   const handleRetry = () => {
     setScanResult(null);
     setError(null);
+    setIsLoading(false);
+    setCameraStarted(false);
+  };
+
+  const startCamera = () => {
     setIsLoading(true);
+    setCameraStarted(true);
   };
 
   const requestCameraPermission = async () => {
@@ -111,7 +118,41 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
 
         {/* Scanner Area */}
         <div className="relative mb-6">
-          {!scanResult && !error && (
+          {!scanResult && !error && !cameraStarted && (
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-8 text-center">
+              <div className="w-16 h-16 bg-brand rounded-xl flex items-center justify-center mx-auto mb-4">
+                <QrCode className="w-8 h-8 text-white" />
+              </div>
+              <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                Scanner QR Code
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                Choisissez comment vous souhaitez scanner le QR code
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={startCamera}
+                  className="w-full px-4 py-3 bg-brand text-white rounded-lg hover:bg-brand/90 transition-colors flex items-center justify-center gap-2"
+                >
+                  <QrCode className="w-5 h-5" />
+                  Utiliser la caméra
+                </button>
+                <button
+                  onClick={() => {
+                    const testCode = 'POISSON_CORAL_101';
+                    setScanResult(testCode);
+                    onScanSuccess?.(testCode);
+                  }}
+                  className="w-full px-4 py-3 border-2 border-gray-300 text-gray-600 rounded-lg hover:border-brand hover:text-brand transition-colors flex items-center justify-center gap-2"
+                >
+                  <QrCode className="w-5 h-5" />
+                  Test QR (Développement)
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!scanResult && !error && cameraStarted && (
             <div className="relative bg-black rounded-xl overflow-hidden">
               {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
@@ -194,6 +235,16 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
                   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                 >
                   Test QR (Dev)
+                </button>
+                <button
+                  onClick={() => {
+                    setCameraStarted(false);
+                    setError(null);
+                    setScanResult(null);
+                  }}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Retour aux options
                 </button>
               </div>
             </div>
