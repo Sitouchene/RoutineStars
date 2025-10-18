@@ -4,19 +4,30 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QrCode, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { useZxing } from 'react-zxing';
 
-// Hook pour détecter si c'est un mobile
+// Hook pour détecter si c'est un mobile (pas tablette)
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
   
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      // Détection plus précise : mobile = < 1024px ET orientation portrait OU très petit écran
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const isPortrait = height > width;
+      const isSmallScreen = width < 1024; // Inclut les tablettes en mode portrait
+      
+      // Mobile si : petit écran ET portrait OU très petit écran (< 480px)
+      setIsMobile(isSmallScreen && (isPortrait || width < 480));
     };
     
     checkIsMobile();
     window.addEventListener('resize', checkIsMobile);
+    window.addEventListener('orientationchange', checkIsMobile);
     
-    return () => window.removeEventListener('resize', checkIsMobile);
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+      window.removeEventListener('orientationchange', checkIsMobile);
+    };
   }, []);
   
   return isMobile;
@@ -34,11 +45,22 @@ const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
     },
     onError(err) {
       console.error('Erreur de scan:', err);
-      onError?.(err);
+      // Améliorer les messages d'erreur
+      if (err.name === 'NotAllowedError') {
+        onError?.(new Error('Permission caméra refusée. Veuillez autoriser l\'accès à la caméra.'));
+      } else if (err.name === 'NotFoundError') {
+        onError?.(new Error('Aucune caméra trouvée. Vérifiez que votre appareil a une caméra.'));
+      } else if (err.name === 'NotReadableError') {
+        onError?.(new Error('Caméra déjà utilisée par une autre application.'));
+      } else {
+        onError?.(err);
+      }
     },
     constraints: {
       video: {
-        facingMode: isMobile ? 'environment' : 'user' // Arrière sur mobile, frontale sur desktop
+        facingMode: isMobile ? 'environment' : 'user', // Arrière sur mobile, frontale sur desktop
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
       }
     },
     timeBetweenDecodingAttempts: 300,
@@ -87,6 +109,9 @@ const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
               <div>{t('child.qr.scanning')}</div>
               <div className="text-xs opacity-75 mt-1">
                 {isMobile ? '📱 Caméra arrière' : '💻 Caméra frontale'}
+                <div className="text-xs opacity-50 mt-1">
+                  {window.innerWidth}×{window.innerHeight}px
+                </div>
               </div>
             </div>
           )}
@@ -138,13 +163,8 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
 
   const handleCameraError = (err) => {
     console.error('Erreur de scan:', err);
-    if (err.name === 'NotAllowedError') {
-      setError('Permission caméra refusée. Veuillez autoriser l\'accès à la caméra.');
-    } else if (err.name === 'NotFoundError') {
-      setError('Aucune caméra trouvée. Vérifiez que votre appareil a une caméra.');
-    } else {
-      setError(t('child.qr.scanError'));
-    }
+    // Utiliser le message d'erreur déjà formaté par CameraScanner
+    setError(err.message || t('child.qr.scanError'));
   };
 
   const handleCameraLoaded = () => {
