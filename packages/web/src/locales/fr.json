@@ -46,7 +46,7 @@
   "child.navigation.profile": "Profil",
   
   "child.home.title": "Accueil",
-  "child.home.subtitle": "Bonjour {name} ! 🌟",
+  "child.home.subtitle": "Bonjour {{name}} ! 🌟",
   "child.home.totalPoints": "Points totaux",
   "child.home.booksRead": "Livres lus",
   "child.home.weeklyProgress": "Progression semaine",
@@ -79,7 +79,8 @@
   "child.reads.bookFinished": "Livre terminé ! Tu as gagné tous les points !",
   "child.reads.markFinished": "Marquer comme terminé",
   "child.reads.noBooks": "Aucune lecture pour le moment",
-  "child.reads.noBooksDesc": "Ton parent ou enseignant va bientôt t'en assigner !",
+  "child.reads.points": "points",
+  "child.reads.pages": "pages",
   
   "child.agenda.title": "Mon agenda",
   "child.agenda.subtitle": "Visualise tes tâches à venir",
@@ -102,6 +103,10 @@
   
   "child.stats.title": "Mes statistiques",
   "child.stats.subtitle": "Suis tes progrès et tes performances",
+
+  "app.name": "mOOtify",
+  "app.tagline": "Transforme tes habitudes en succès !",
+  "app.slogan": "Chaque effort compte",
 
   "common.welcome": "Bienvenue",
   "common.loading": "Chargement...",
@@ -127,6 +132,7 @@
   "common.and": "et",
   "common.optional": "optionnel",
   "common.default": "Défaut",
+  "common.logout": "Se déconnecter",
 
   "welcome.title": "Bienvenue ! Qui es-tu ?",
   "welcome.parent": "Parent",
@@ -366,13 +372,13 @@
   "stats.weekEarnedPoints": "Points gagnés cette semaine",
   "stats.weekTotalPoints": "Points totaux possibles",
   "stats.weekProgress": "Progression de la semaine",
-  "stats.daysShort.0": "Lun",
-  "stats.daysShort.1": "Mar",
-  "stats.daysShort.2": "Mer",
-  "stats.daysShort.3": "Jeu",
-  "stats.daysShort.4": "Ven",
-  "stats.daysShort.5": "Sam",
-  "stats.daysShort.6": "Dim",
+    "stats.daysShort.0": "Lun",
+    "stats.daysShort.1": "Mar",
+    "stats.daysShort.2": "Mer",
+    "stats.daysShort.3": "Jeu",
+    "stats.daysShort.4": "Ven",
+    "stats.daysShort.5": "Sam",
+    "stats.daysShort.6": "Dim",
 
   "messages.title": "Messages & règles",
   "messages.description": "Gérez les messages et règles d'évaluation",

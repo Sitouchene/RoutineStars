@@ -45,7 +45,7 @@
   "child.navigation.profile": "الملف الشخصي",
   
   "child.home.title": "الرئيسية",
-  "child.home.subtitle": "مرحباً {name}! 🌟",
+  "child.home.subtitle": "مرحباً {{name}}! 🌟",
   "child.home.totalPoints": "إجمالي النقاط",
   "child.home.booksRead": "الكتب المقروءة",
   "child.home.weeklyProgress": "تقدم الأسبوع",
@@ -78,7 +78,8 @@
   "child.reads.bookFinished": "انتهى الكتاب! لقد حصلت على جميع النقاط!",
   "child.reads.markFinished": "وضع علامة كمنتهي",
   "child.reads.noBooks": "لا توجد قراءات حتى الآن",
-  "child.reads.noBooksDesc": "سيقوم والدك أو معلمك بتعيين بعضها قريبًا!",
+  "child.reads.points": "نقاط",
+  "child.reads.pages": "صفحات",
   
   "child.agenda.title": "أجندتي",
   "child.agenda.subtitle": "تصور مهامك القادمة",
@@ -130,6 +131,7 @@
   "common.and": "و",
   "common.optional": "اختياري",
   "common.default": "افتراضي",
+  "common.logout": "الخروج",
   
   "welcome.title": "مرحبا! من أنت؟",
   "welcome.parent": "ولي أمر",

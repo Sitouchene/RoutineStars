@@ -46,7 +46,7 @@
   "child.navigation.profile": "Profile",
   
   "child.home.title": "Home",
-  "child.home.subtitle": "Hello {name}! 🌟",
+  "child.home.subtitle": "Hello {{name}}! 🌟",
   "child.home.totalPoints": "Total points",
   "child.home.booksRead": "Books read",
   "child.home.weeklyProgress": "Weekly progress",
@@ -79,7 +79,8 @@
   "child.reads.bookFinished": "Book finished! You earned all points!",
   "child.reads.markFinished": "Mark as finished",
   "child.reads.noBooks": "No readings yet",
-  "child.reads.noBooksDesc": "Your parent or teacher will assign some soon!",
+  "child.reads.points": "points",
+  "child.reads.pages": "pages",
   
   "child.agenda.title": "My agenda",
   "child.agenda.subtitle": "Visualize your upcoming tasks",
@@ -131,6 +132,7 @@
   "common.and": "and",
   "common.optional": "optional",
   "common.default": "Default",
+  "common.logout": "Logout",
   
   "welcome.title": "Welcome! Who are you?",
   "welcome.parent": "Parent",

@@ -28,10 +28,10 @@ export default function ReadingProgressBar({
       <div className="flex items-center justify-between text-sm">
         <div className="flex items-center gap-2 text-anthracite dark:text-cream font-medium">
           <Star className="w-4 h-4 text-brand" />
-          <span>{currentPoints} / {totalPoints} points</span>
+          <span>{currentPoints} / {totalPoints} {t('child.reads.points')}</span>
         </div>
         <div className="text-gray-600 dark:text-gray-400">
-          {currentPage} / {totalPages} pages
+          {currentPage} / {totalPages} {t('child.reads.pages')}
         </div>
       </div>
       
@@ -85,11 +85,10 @@ export default function ReadingProgressBar({
         <div className="bg-brand-light/20 border border-brand rounded-lg p-3 text-sm">
           <div className="flex items-center gap-2 text-brand font-medium mb-1">
             <Trophy className="w-4 h-4" />
-            <span>Prochain palier: {nextMilestone}%</span>
+            <span>{t('child.reads.nextMilestone')}: {nextMilestone}%</span>
           </div>
           <p className="text-anthracite dark:text-cream text-xs">
-            Plus que <span className="font-bold">{pagesRemaining} pages</span> pour gagner{' '}
-            <span className="font-bold">{Math.floor(pointsPerMilestone)} points</span> !
+            {t('child.reads.pagesLeft', { pages: pagesRemaining })} {t('child.reads.earnPoints', { points: Math.floor(pointsPerMilestone) })}
           </p>
         </div>
       )}
@@ -99,7 +98,7 @@ export default function ReadingProgressBar({
         <div className="bg-green-100 dark:bg-green-900/30 border border-green-500 rounded-lg p-3 text-sm">
           <div className="flex items-center gap-2 text-green-700 dark:text-green-400 font-medium">
             <Trophy className="w-4 h-4" />
-            <span>🎉 Livre terminé ! Tu as gagné tous les points !</span>
+            <span>🎉 {t('child.reads.bookFinished')}</span>
           </div>
         </div>
       )}

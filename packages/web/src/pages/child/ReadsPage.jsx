@@ -90,7 +90,7 @@ export default function ReadsPage() {
         <div className="max-w-4xl mx-auto">
           <ChildHeader title={t('child.reads.title')} subtitle={t('child.reads.subtitle')} />
           <div className="text-center py-12">
-            <div className="text-gray-500">Chargement de tes lectures...</div>
+            <div className="text-gray-500">{t('child.reads.loading')}</div>
           </div>
         </div>
       </div>
@@ -104,8 +104,8 @@ export default function ReadsPage() {
           <ChildHeader title={t('child.reads.title')} subtitle={t('child.reads.subtitle')} />
           <div className="text-center py-12">
             <BookOpenIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Aucune lecture pour le moment</p>
-            <p className="text-sm text-gray-400 mt-2">Ton parent ou enseignant va bientôt t'en assigner !</p>
+            <p className="text-gray-500">{t('child.reads.noBooks')}</p>
+            <p className="text-sm text-gray-400 mt-2">{t('child.reads.noBooksDesc')}</p>
           </div>
         </div>
       </div>
@@ -145,13 +145,13 @@ export default function ReadsPage() {
                   <div className="mt-2 text-xs text-gray-600 dark:text-gray-300 flex items-center gap-1">
                     <AssignmentTypeIcon type={reading.assignmentType} />
                     {reading.assignmentType === 'assigned' && assignedBy && (
-                      <span>Assigné par {assignedBy.name}</span>
+                      <span>{t('child.reads.assignedBy', { name: assignedBy.name })}</span>
                     )}
                     {reading.assignmentType === 'recommended' && assignedBy && (
-                      <span>Recommandé par {assignedBy.name}</span>
+                      <span>{t('child.reads.recommended', { name: assignedBy.name })}</span>
                     )}
                     {reading.assignmentType === 'chosen' && (
-                      <span>Choisi par toi</span>
+                      <span>{t('child.reads.chosen')}</span>
                     )}
                   </div>
                   
@@ -191,13 +191,13 @@ export default function ReadsPage() {
 
               {/* Bouton terminer */}
               {!progress.isFinished && progress.currentPage >= book.totalPages * 0.9 && (
-                <button
-                  onClick={() => handleFinishBook(reading.id)}
-                  disabled={finishBookMutation.isPending}
-                  className="mt-3 w-full btn btn-primary text-sm"
-                >
-                  Marquer comme terminé
-                </button>
+                  <button
+                    onClick={() => handleFinishBook(reading.id)}
+                    disabled={finishBookMutation.isPending}
+                    className="mt-3 w-full btn btn-primary text-sm"
+                  >
+                    {t('child.reads.markFinished')}
+                  </button>
               )}
             </div>
           );
