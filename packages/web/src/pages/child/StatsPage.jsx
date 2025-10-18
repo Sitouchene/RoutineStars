@@ -280,7 +280,7 @@ function WeeklyStatsView({ childId, startDate, getAuthHeader }) {
             const [yy, mm, dd] = dayStats.date.split('-').map(Number);
             const date = new Date(yy, mm - 1, dd);
             const dayNumber = date.getDate();
-            const dayName = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][date.getDay()];
+            const dayName = t(`stats.daysShort.${date.getDay()}`);
             
             return (
               <div key={dayStats.date} className="text-center">
@@ -385,9 +385,9 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
         </h3>
         <div className="grid grid-cols-7 gap-1 text-center">
           {/* En-têtes des jours */}
-          {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
-            <div key={day} className="p-2 text-sm font-bold text-gray-600 bg-gray-100 rounded">
-              {day}
+          {[0, 1, 2, 3, 4, 5, 6].map(dayIndex => (
+            <div key={dayIndex} className="p-2 text-sm font-bold text-gray-600 bg-gray-100 rounded">
+              {t(`stats.daysShort.${dayIndex}`)}
             </div>
           ))}
           
