@@ -16,6 +16,7 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
   const { t } = useTranslation();
   const [scanResult, setScanResult] = useState(null);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { ref } = useZxing({
     onDecodeResult(result) {
@@ -25,10 +26,25 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
     },
     onError(err) {
       console.error('Erreur de scan:', err);
-      setError(t('child.qr.scanError'));
+      if (err.name === 'NotAllowedError') {
+        setError('Permission caméra refusée. Veuillez autoriser l\'accès à la caméra.');
+      } else if (err.name === 'NotFoundError') {
+        setError('Aucune caméra trouvée. Vérifiez que votre appareil a une caméra.');
+      } else {
+        setError(t('child.qr.scanError'));
+      }
     },
     constraints: {
-      facingMode: 'environment' // Caméra arrière
+      video: {
+        facingMode: 'environment' // Caméra arrière
+      }
+    },
+    timeBetweenDecodingAttempts: 300,
+    onDecodeError: (error) => {
+      // Ignorer les erreurs de décodage fréquentes
+      if (error.name !== 'NotFoundException') {
+        console.warn('Erreur de décodage:', error);
+      }
     }
   });
 
@@ -41,6 +57,24 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
   const handleRetry = () => {
     setScanResult(null);
     setError(null);
+    setIsLoading(true);
+  };
+
+  const requestCameraPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      stream.getTracks().forEach(track => track.stop());
+      setError(null);
+      setIsLoading(true);
+    } catch (err) {
+      if (err.name === 'NotAllowedError') {
+        setError('Permission caméra refusée. Veuillez autoriser l\'accès à la caméra dans les paramètres de votre navigateur.');
+      } else {
+        setError('Erreur lors de la demande de permission caméra.');
+      }
+    }
   };
 
   if (!isOpen) return null;
@@ -79,11 +113,24 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
         <div className="relative mb-6">
           {!scanResult && !error && (
             <div className="relative bg-black rounded-xl overflow-hidden">
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                  <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                    <p className="text-sm">Initialisation de la caméra...</p>
+                  </div>
+                </div>
+              )}
               <video
                 ref={ref}
                 className="w-full h-64 object-cover"
                 playsInline
                 muted
+                onLoadedData={() => setIsLoading(false)}
+                onError={() => {
+                  setIsLoading(false);
+                  setError('Erreur lors du chargement de la caméra');
+                }}
               />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-48 h-48 border-2 border-brand rounded-xl bg-transparent">
@@ -95,7 +142,7 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
               </div>
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
                 <div className="bg-black/50 text-white px-4 py-2 rounded-lg text-sm">
-                  {t('child.qr.scanning')}
+                  {isLoading ? 'Chargement...' : t('child.qr.scanning')}
                 </div>
               </div>
             </div>
@@ -122,12 +169,22 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
               <p className="text-sm text-red-600 dark:text-red-400 mb-4">
                 {error}
               </p>
-              <button
-                onClick={handleRetry}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              >
-                {t('child.qr.retry')}
-              </button>
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={handleRetry}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  {t('child.qr.retry')}
+                </button>
+                {error.includes('Permission') && (
+                  <button
+                    onClick={requestCameraPermission}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    Autoriser la caméra
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
