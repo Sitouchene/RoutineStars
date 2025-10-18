@@ -195,17 +195,6 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
                   <QrCode className="w-5 h-5" />
                   Utiliser la caméra
                 </button>
-                <button
-                  onClick={() => {
-                    const testCode = 'POISSON_CORAL_101';
-                    setScanResult(testCode);
-                    onScanSuccess?.(testCode);
-                  }}
-                  className="w-full px-4 py-3 border-2 border-gray-300 text-gray-600 rounded-lg hover:border-brand hover:text-brand transition-colors flex items-center justify-center gap-2"
-                >
-                  <QrCode className="w-5 h-5" />
-                  Test QR (Développement)
-                </button>
               </div>
             </div>
           )}
@@ -255,17 +244,6 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
                     Autoriser la caméra
                   </button>
                 )}
-                {/* Bouton de test temporaire pour développement */}
-                <button
-                  onClick={() => {
-                    const testCode = 'POISSON_CORAL_101';
-                    setScanResult(testCode);
-                    onScanSuccess?.(testCode);
-                  }}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  Test QR (Dev)
-                </button>
                 <button
                   onClick={() => {
                     setCameraStarted(false);
