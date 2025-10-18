@@ -36,7 +36,7 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
     },
     constraints: {
       video: {
-        facingMode: 'environment' // Caméra arrière
+        facingMode: 'user' // Caméra frontale par défaut
       }
     },
     timeBetweenDecodingAttempts: 300,
@@ -63,7 +63,7 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
   const requestCameraPermission = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
+        video: { facingMode: 'user' } 
       });
       stream.getTracks().forEach(track => track.stop());
       setError(null);
@@ -184,6 +184,17 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
                     Autoriser la caméra
                   </button>
                 )}
+                {/* Bouton de test temporaire pour développement */}
+                <button
+                  onClick={() => {
+                    const testCode = 'POISSON_CORAL_101';
+                    setScanResult(testCode);
+                    onScanSuccess?.(testCode);
+                  }}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  Test QR (Dev)
+                </button>
               </div>
             </div>
           )}
