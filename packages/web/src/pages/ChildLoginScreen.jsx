@@ -173,10 +173,18 @@ export default function ChildLoginScreen() {
         navigate('/child'); // Redirige vers /child qui affiche "Ma journée" (ChildDashboard)
       } else {
         setError(t('child.invalidPin'));
+        // Réinitialisation rapide du PIN en cas d'erreur
+        setTimeout(() => {
+          setPin('');
+        }, 1000);
       }
     } catch (err) {
       console.error('Login error:', err);
       setError(t('child.invalidPin'));
+      // Réinitialisation rapide du PIN en cas d'erreur
+      setTimeout(() => {
+        setPin('');
+      }, 1000);
     } finally {
       setLoading(false);
     }
@@ -191,6 +199,41 @@ export default function ChildLoginScreen() {
   const handleBackspace = () => {
     setPin(prev => prev.slice(0, -1));
   };
+
+  // Gestion du clavier physique
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignorer si on est dans un input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // Chiffres 0-9
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        handleKeyPress(e.key);
+      }
+      // Backspace
+      else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleBackspace();
+      }
+      // Enter pour soumettre si PIN complet
+      else if (e.key === 'Enter' && pin.length === 4) {
+        e.preventDefault();
+        handlePinSubmit(e);
+      }
+    };
+
+    // Ajouter l'écouteur seulement sur l'écran PIN
+    if (selectedChild) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [pin, selectedChild]);
 
   // Interface de sélection de groupe
   if (showGroupInput) {
@@ -400,18 +443,18 @@ export default function ChildLoginScreen() {
   // Interface de saisie du PIN
   return (
     <div className="min-h-screen bg-gradient-mootify flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
+      <div className="max-w-sm w-full">
         <button
           onClick={() => setSelectedChild(null)}
-          className="mb-6 flex items-center text-gray-600 hover:text-gray-800 transition-colors"
+          className="mb-4 flex items-center text-gray-600 hover:text-gray-800 transition-colors"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           {t('common.back')}
         </button>
 
-        <div className="bg-white dark:bg-anthracite-light rounded-2xl p-8 shadow-lg ring-1 ring-black/5 dark:ring-white/5">
-          <div className="text-center mb-6">
-            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-brand mx-auto mb-4">
+        <div className="bg-white dark:bg-anthracite-light rounded-2xl p-6 shadow-lg ring-1 ring-black/5 dark:ring-white/5">
+          <div className="text-center mb-4">
+            <div className="w-16 h-16 rounded-full overflow-hidden border-3 border-brand mx-auto mb-3">
               {selectedChild.avatar ? (
                 <img
                   src={seedToAvatarUrl(selectedChild.avatar) || selectedChild.avatar}
@@ -419,38 +462,42 @@ export default function ChildLoginScreen() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-4xl">
+                <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-3xl">
                   👦
                 </div>
               )}
             </div>
-            <h2 className="text-2xl font-display font-bold text-anthracite dark:text-cream mb-1">
+            <h2 className="text-xl font-display font-bold text-anthracite dark:text-cream mb-1">
               {t('common.welcome')}, {selectedChild.name} ! 👋
             </h2>
-            <p className="text-gray-600">{t('child.pin')}</p>
+            <p className="text-sm text-gray-600">{t('child.pin')}</p>
           </div>
 
-          <form onSubmit={handlePinSubmit} className="space-y-6">
+          <form onSubmit={handlePinSubmit} className="space-y-4">
             {/* Affichage du PIN */}
-            <div className="flex justify-center gap-3">
+            <div className="flex justify-center gap-2">
               {[0, 1, 2, 3].map(index => (
                 <div
                   key={index}
-                  className="w-14 h-14 border-2 border-gray-300 rounded-lg flex items-center justify-center text-2xl font-bold bg-gray-50"
+                  className={`w-12 h-12 border-2 rounded-lg flex items-center justify-center text-xl font-bold transition-colors ${
+                    pin[index] 
+                      ? 'border-brand bg-brand text-white' 
+                      : 'border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-800'
+                  }`}
                 >
                   {pin[index] ? '●' : ''}
                 </div>
               ))}
             </div>
 
-            {/* Clavier numérique */}
-            <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto">
+            {/* Clavier numérique - Disposition universelle (1 en haut à gauche) */}
+            <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto" dir="ltr">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(digit => (
                 <button
                   key={digit}
                   type="button"
                   onClick={() => handleKeyPress(digit.toString())}
-                  className="w-full aspect-square bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-xl text-xl font-bold transition-colors"
+                  className="w-full aspect-square bg-gray-100 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 rounded-lg text-lg font-bold transition-colors"
                 >
                   {digit}
                 </button>
@@ -458,14 +505,14 @@ export default function ChildLoginScreen() {
               <button
                 type="button"
                 onClick={handleBackspace}
-                className="w-full aspect-square bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-xl text-xl font-bold transition-colors"
+                className="w-full aspect-square bg-gray-100 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 rounded-lg text-lg font-bold transition-colors"
               >
                 ⌫
               </button>
               <button
                 type="button"
                 onClick={() => handleKeyPress('0')}
-                className="w-full aspect-square bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-xl text-xl font-bold transition-colors"
+                className="w-full aspect-square bg-gray-100 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 rounded-lg text-lg font-bold transition-colors"
               >
                 0
               </button>
@@ -473,7 +520,7 @@ export default function ChildLoginScreen() {
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center font-medium">
+              <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm text-center font-medium">
                 {error}
               </div>
             )}
@@ -482,7 +529,7 @@ export default function ChildLoginScreen() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full btn btn-primary py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full btn btn-primary py-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? t('auth.connecting') : t('child.loginButton')}
               </button>
