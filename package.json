@@ -12,6 +12,7 @@
     "start:web": "pnpm --filter web preview",
     "db:push": "pnpm --filter api db:push",
     "db:studio": "pnpm --filter api db:studio",
+    "prisma:migrate:resolve": "prisma migrate resolve --applied 20250110_add_genres_to_books",
     "format": "prettier --write \"**/*.{js,jsx,json,md}\""
   },
   "keywords": [

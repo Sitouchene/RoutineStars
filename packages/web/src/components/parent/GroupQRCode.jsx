@@ -17,7 +17,7 @@ export default function GroupQRCode({ groupCode, groupName, isOpen, onClose }) {
   
   if (!isOpen) return null;
   
-  const qrValue = `${window.location.origin}/child-login?code=${groupCode}`;
+  const qrValue = `${window.location.origin}/auth/child?code=${groupCode}`;
   
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
