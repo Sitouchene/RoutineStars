@@ -11,10 +11,10 @@ export default function ChildStatsPage() {
   const { t } = useTranslation();
   const { getAuthHeader, user } = useAuthStore();
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState('daily'); // daily, weekly, monthly
+  const [activeTab, setActiveTab] = useState('daily'); // daily, weekly, monthly
   const [selectedDate, setSelectedDate] = useState(formatLocalDate(new Date()));
 
-  const viewModes = [
+  const tabs = [
     { key: 'daily', label: t('child.today'), icon: Calendar },
     { key: 'weekly', label: t('child.thisWeek'), icon: BarChart3 },
     { key: 'monthly', label: t('child.thisMonth'), icon: TrendingUp },
@@ -28,30 +28,29 @@ export default function ChildStatsPage() {
           subtitle={t('child.stats.subtitle')}
         />
 
-        {/* Sélection de vue */}
-        <div className="bg-white dark:bg-anthracite-light rounded-2xl border border-gray-200 dark:border-gray-700 p-4 mb-6 shadow-md">
-          <h3 className="font-display font-semibold text-anthracite dark:text-cream mb-3">{t('child.choosePeriod')}</h3>
-          <div className="flex gap-2 flex-wrap">
-            {viewModes.map(mode => (
+        {/* Tabs Navigation */}
+        <div className="bg-white dark:bg-anthracite-light rounded-2xl border border-gray-200 dark:border-gray-700 p-1 mb-6 shadow-md">
+          <div className="flex">
+            {tabs.map(tab => (
               <button
-                key={mode.key}
-                onClick={() => setViewMode(mode.key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                  viewMode === mode.key
-                    ? 'bg-brand text-white shadow-md scale-105'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all ${
+                  activeTab === tab.key
+                    ? 'bg-brand text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
                 }`}
               >
-                <mode.icon className="w-4 h-4" />
-                {mode.label}
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Contenu des statistiques */}
+        {/* Tab Content */}
         <div className="bg-white dark:bg-anthracite-light rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-lg">
-          {viewMode === 'daily' && (
+          {activeTab === 'daily' && (
             <DailyStatsView 
               childId={user?.id} 
               date={selectedDate} 
@@ -60,7 +59,7 @@ export default function ChildStatsPage() {
             />
           )}
 
-          {viewMode === 'weekly' && (
+          {activeTab === 'weekly' && (
             <WeeklyStatsView 
               childId={user?.id} 
               startDate={getWeekStart(selectedDate)}
@@ -68,7 +67,7 @@ export default function ChildStatsPage() {
             />
           )}
 
-          {viewMode === 'monthly' && (
+          {activeTab === 'monthly' && (
             <MonthlyStatsView 
               childId={user?.id} 
               year={new Date(selectedDate).getFullYear()}
@@ -93,7 +92,8 @@ function formatLocalDate(dateObj) {
 function getWeekStart(date) {
   const parts = date.split('-').map(Number);
   const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-  const dayOfWeek = dateObj.getDay();
+  const dayOfWeek = dateObj.getDay(); // 0 = dimanche, 1 = lundi, etc.
+  // Calculer le lundi de la semaine (début de semaine)
   const diff = dateObj.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
   const monday = new Date(dateObj);
   monday.setDate(diff);
@@ -286,17 +286,20 @@ function WeeklyStatsView({ childId, startDate, getAuthHeader }) {
               <div key={dayStats.date} className="text-center">
                 <div className="text-xs text-gray-600 mb-1 font-medium">{dayName}</div>
                 <div className="text-sm font-bold text-gray-900 mb-2">{dayNumber}</div>
-                <div className={`w-full h-20 rounded-lg flex items-end justify-center p-2 border-2 ${
+                <div className={`w-full h-24 rounded-lg flex flex-col justify-center items-center p-2 border-2 relative ${
                   dayStats.completionRate >= 80 ? 'bg-green-100 border-green-300' :
                   dayStats.completionRate >= 60 ? 'bg-yellow-100 border-yellow-300' :
                   dayStats.completionRate >= 40 ? 'bg-orange-100 border-orange-300' : 'bg-red-100 border-red-300'
                 }`}>
-                  <div className="text-xs font-bold text-gray-700">
+                  <div className="text-xs font-bold text-gray-700 mb-1">
                     {dayStats.completionRate}%
                   </div>
-                </div>
-                <div className="text-xs text-gray-500 mt-1 font-medium">
-                  {dayStats.earnedPoints} 🪙
+                  <div className="text-xs text-gray-600 mb-1">
+                    {dayStats.earnedPoints} 🪙
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    {dayStats.totalTasks} 🎯
+                  </div>
                 </div>
               </div>
             );
@@ -398,10 +401,10 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
             // Créer un tableau avec les cellules vides pour le début du mois
             const calendarCells = [];
             
-            // Ajouter les cellules vides pour aligner le premier jour
+            // Ajouter les cellules vides pour aligner le premier jour (lundi = début de semaine)
             for (let i = 0; i < (firstDayWeekday === 0 ? 6 : firstDayWeekday - 1); i++) {
               calendarCells.push(
-                <div key={`empty-${i}`} className="p-2 rounded-lg min-h-[60px] bg-gray-50 border-gray-200"></div>
+                <div key={`empty-${i}`} className="p-2 rounded-lg min-h-[80px] bg-gray-50 border-gray-200"></div>
               );
             }
             
@@ -409,13 +412,11 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
             for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber++) {
               const dateKey = `${year}-${month.toString().padStart(2, '0')}-${dayNumber.toString().padStart(2, '0')}`;
               const dayStats = stats.dailyStats[dateKey];
-              const currentDate = new Date(year, month - 1, dayNumber);
-              const dayName = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][currentDate.getDay()];
               
               calendarCells.push(
                 <div
                   key={dayNumber}
-                  className={`p-2 rounded-lg min-h-[60px] flex flex-col justify-center border-2 ${
+                  className={`p-2 rounded-lg min-h-[80px] flex flex-col border-2 relative ${
                     dayStats
                       ? dayStats.completionRate >= 80 ? 'bg-green-100 border-green-300' :
                         dayStats.completionRate >= 60 ? 'bg-yellow-100 border-yellow-300' :
@@ -423,17 +424,28 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
                       : 'bg-gray-50 border-gray-200'
                   }`}
                 >
-                  <div className="text-sm font-bold text-gray-900">{dayNumber}</div>
-                  <div className="text-xs text-gray-500">{dayName}</div>
-                  {dayStats && (
-                    <>
-                      <div className="text-xs font-bold text-gray-700">
+                  {/* Date en coin supérieur */}
+                  <div className="absolute top-1 left-1 text-sm font-bold text-gray-900">
+                    {dayNumber}
+                  </div>
+                  
+                  {/* Stats au centre */}
+                  {dayStats ? (
+                    <div className="flex-1 flex flex-col justify-center items-center text-center">
+                      <div className="text-xs font-bold text-gray-700 mb-1">
                         {dayStats.completionRate}%
                       </div>
-                      <div className="text-xs text-gray-600">
+                      <div className="text-xs text-gray-600 mb-1">
                         {dayStats.earnedPoints} 🪙
                       </div>
-                    </>
+                      <div className="text-xs text-gray-600">
+                        {dayStats.totalTasks} 🎯
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-xs text-gray-400">-</div>
+                    </div>
                   )}
                 </div>
               );
