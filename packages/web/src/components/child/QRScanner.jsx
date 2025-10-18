@@ -1,8 +1,74 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QrCode, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { useZxing } from 'react-zxing';
+
+// Composant séparé pour le scanner de caméra avec useZxing
+const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
+  const { t } = useTranslation();
+  
+  const { ref } = useZxing({
+    onDecodeResult(result) {
+      console.log('QR Code scanné:', result);
+      onScanSuccess?.(result);
+    },
+    onError(err) {
+      console.error('Erreur de scan:', err);
+      onError?.(err);
+    },
+    constraints: {
+      video: {
+        facingMode: 'user' // Caméra frontale par défaut
+      }
+    },
+    timeBetweenDecodingAttempts: 300,
+    onDecodeError: (error) => {
+      // Ignorer les erreurs de décodage fréquentes
+      if (error.name !== 'NotFoundException') {
+        console.warn('Erreur de décodage:', error);
+      }
+    },
+    onStart: () => {
+      console.log('Scanner démarré');
+      onLoadedData?.();
+    }
+  });
+  
+  return (
+    <div className="relative bg-black rounded-xl overflow-hidden">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+            <p className="text-sm">Initialisation de la caméra...</p>
+          </div>
+        </div>
+      )}
+      <video
+        ref={ref}
+        className="w-full h-64 object-cover"
+        playsInline
+        muted
+        onLoadedData={onLoadedData}
+        onError={onError}
+      />
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-48 h-48 border-2 border-brand rounded-xl bg-transparent">
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-brand rounded-tl-xl"></div>
+          <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-brand rounded-tr-xl"></div>
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-brand rounded-bl-xl"></div>
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-brand rounded-br-xl"></div>
+        </div>
+      </div>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+        <div className="bg-black/50 text-white px-4 py-2 rounded-lg text-sm">
+          {isLoading ? 'Chargement...' : t('child.qr.scanning')}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /**
  * Composant de scan QR code pour les enfants
@@ -18,36 +84,7 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [cameraStarted, setCameraStarted] = useState(false);
-
-  const { ref } = useZxing({
-    onDecodeResult(result) {
-      console.log('QR Code scanné:', result);
-      setScanResult(result);
-      onScanSuccess?.(result);
-    },
-    onError(err) {
-      console.error('Erreur de scan:', err);
-      if (err.name === 'NotAllowedError') {
-        setError('Permission caméra refusée. Veuillez autoriser l\'accès à la caméra.');
-      } else if (err.name === 'NotFoundError') {
-        setError('Aucune caméra trouvée. Vérifiez que votre appareil a une caméra.');
-      } else {
-        setError(t('child.qr.scanError'));
-      }
-    },
-    constraints: {
-      video: {
-        facingMode: 'user' // Caméra frontale par défaut
-      }
-    },
-    timeBetweenDecodingAttempts: 300,
-    onDecodeError: (error) => {
-      // Ignorer les erreurs de décodage fréquentes
-      if (error.name !== 'NotFoundException') {
-        console.warn('Erreur de décodage:', error);
-      }
-    }
-  });
+  const [shouldStartCamera, setShouldStartCamera] = useState(false);
 
   const handleClose = () => {
     setScanResult(null);
@@ -65,6 +102,27 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
   const startCamera = () => {
     setIsLoading(true);
     setCameraStarted(true);
+    setShouldStartCamera(true);
+  };
+
+  const handleScanSuccess = (result) => {
+    setScanResult(result);
+    onScanSuccess?.(result);
+  };
+
+  const handleCameraError = (err) => {
+    console.error('Erreur de scan:', err);
+    if (err.name === 'NotAllowedError') {
+      setError('Permission caméra refusée. Veuillez autoriser l\'accès à la caméra.');
+    } else if (err.name === 'NotFoundError') {
+      setError('Aucune caméra trouvée. Vérifiez que votre appareil a une caméra.');
+    } else {
+      setError(t('child.qr.scanError'));
+    }
+  };
+
+  const handleCameraLoaded = () => {
+    setIsLoading(false);
   };
 
   const requestCameraPermission = async () => {
@@ -152,41 +210,13 @@ export default function QRScanner({ isOpen, onClose, onScanSuccess }) {
             </div>
           )}
 
-          {!scanResult && !error && cameraStarted && (
-            <div className="relative bg-black rounded-xl overflow-hidden">
-              {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                  <div className="text-white text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-                    <p className="text-sm">Initialisation de la caméra...</p>
-                  </div>
-                </div>
-              )}
-              <video
-                ref={ref}
-                className="w-full h-64 object-cover"
-                playsInline
-                muted
-                onLoadedData={() => setIsLoading(false)}
-                onError={() => {
-                  setIsLoading(false);
-                  setError('Erreur lors du chargement de la caméra');
-                }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-48 h-48 border-2 border-brand rounded-xl bg-transparent">
-                  <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-brand rounded-tl-xl"></div>
-                  <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-brand rounded-tr-xl"></div>
-                  <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-brand rounded-bl-xl"></div>
-                  <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-brand rounded-br-xl"></div>
-                </div>
-              </div>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-                <div className="bg-black/50 text-white px-4 py-2 rounded-lg text-sm">
-                  {isLoading ? 'Chargement...' : t('child.qr.scanning')}
-                </div>
-              </div>
-            </div>
+          {!scanResult && !error && cameraStarted && shouldStartCamera && (
+            <CameraScanner 
+              isLoading={isLoading}
+              onLoadedData={handleCameraLoaded}
+              onError={handleCameraError}
+              onScanSuccess={handleScanSuccess}
+            />
           )}
 
           {scanResult && (
