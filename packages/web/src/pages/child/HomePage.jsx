@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useQuery } from '@tanstack/react-query';
 import { Award, Star, BookOpen, Bell, Trophy, Target, Calendar, TrendingUp } from 'lucide-react';
@@ -11,6 +12,7 @@ import { messagesApi, readingApi, childrenApi } from '../../lib/api-client';
 
 export default function HomePage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { user, getAuthHeader } = useAuthStore();
   const [notifications] = useState([
     { id: 1, message: "Bravo ! Tu as terminé tes devoirs", time: "2h", type: "success" },
@@ -249,19 +251,31 @@ export default function HomePage() {
 
         {/* Actions rapides */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <button className="bg-white dark:bg-anthracite-light rounded-xl p-4 text-center shadow-md ring-1 ring-black/5 dark:ring-white/5 hover:shadow-lg transition-all">
+          <button 
+            onClick={() => navigate('/child/day')}
+            className="bg-white dark:bg-anthracite-light rounded-xl p-4 text-center shadow-md ring-1 ring-black/5 dark:ring-white/5 hover:shadow-lg transition-all hover:scale-105"
+          >
             <Target className="w-6 h-6 text-brand mx-auto mb-2" />
             <p className="text-sm font-medium text-anthracite dark:text-cream">{t('child.home.myTasks')}</p>
           </button>
-          <button className="bg-white dark:bg-anthracite-light rounded-xl p-4 text-center shadow-md ring-1 ring-black/5 dark:ring-white/5 hover:shadow-lg transition-all">
+          <button 
+            onClick={() => navigate('/child/agenda')}
+            className="bg-white dark:bg-anthracite-light rounded-xl p-4 text-center shadow-md ring-1 ring-black/5 dark:ring-white/5 hover:shadow-lg transition-all hover:scale-105"
+          >
             <Calendar className="w-6 h-6 text-secondary mx-auto mb-2" />
             <p className="text-sm font-medium text-anthracite dark:text-cream">{t('child.home.myAgenda')}</p>
           </button>
-          <button className="bg-white dark:bg-anthracite-light rounded-xl p-4 text-center shadow-md ring-1 ring-black/5 dark:ring-white/5 hover:shadow-lg transition-all">
+          <button 
+            onClick={() => navigate('/child/reads')}
+            className="bg-white dark:bg-anthracite-light rounded-xl p-4 text-center shadow-md ring-1 ring-black/5 dark:ring-white/5 hover:shadow-lg transition-all hover:scale-105"
+          >
             <BookOpen className="w-6 h-6 text-accent mx-auto mb-2" />
             <p className="text-sm font-medium text-anthracite dark:text-cream">{t('child.home.myReads')}</p>
           </button>
-          <button className="bg-white dark:bg-anthracite-light rounded-xl p-4 text-center shadow-md ring-1 ring-black/5 dark:ring-white/5 hover:shadow-lg transition-all">
+          <button 
+            onClick={() => navigate('/child/stats')}
+            className="bg-white dark:bg-anthracite-light rounded-xl p-4 text-center shadow-md ring-1 ring-black/5 dark:ring-white/5 hover:shadow-lg transition-all hover:scale-105"
+          >
             <Trophy className="w-6 h-6 text-brand mx-auto mb-2" />
             <p className="text-sm font-medium text-anthracite dark:text-cream">{t('child.home.myStats')}</p>
           </button>
