@@ -10,14 +10,17 @@ const useIsMobile = () => {
   
   useEffect(() => {
     const checkIsMobile = () => {
-      // Détection plus précise : mobile = < 1024px ET orientation portrait OU très petit écran
       const width = window.innerWidth;
       const height = window.innerHeight;
       const isPortrait = height > width;
-      const isSmallScreen = width < 1024; // Inclut les tablettes en mode portrait
       
-      // Mobile si : petit écran ET portrait OU très petit écran (< 480px)
-      setIsMobile(isSmallScreen && (isPortrait || width < 480));
+      // Logique simplifiée et plus précise :
+      // - Mobile si portrait ET largeur < 768px (tablettes incluses en portrait)
+      // - Mobile si très petit écran (< 480px) peu importe l'orientation
+      const isMobileDevice = (isPortrait && width < 768) || width < 480;
+      
+      console.log(`Détection mobile: ${width}×${height}px, portrait: ${isPortrait}, mobile: ${isMobileDevice}`);
+      setIsMobile(isMobileDevice);
     };
     
     checkIsMobile();
@@ -37,6 +40,7 @@ const useIsMobile = () => {
 const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const [cameraMode, setCameraMode] = useState(isMobile ? 'environment' : 'user');
   
   const { ref } = useZxing({
     onDecodeResult(result) {
@@ -45,6 +49,14 @@ const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
     },
     onError(err) {
       console.error('Erreur de scan:', err);
+      
+      // Si erreur avec caméra arrière sur mobile, essayer caméra frontale
+      if (isMobile && cameraMode === 'environment' && (err.name === 'NotFoundError' || err.name === 'NotReadableError')) {
+        console.log('Caméra arrière non disponible, basculement vers caméra frontale');
+        setCameraMode('user');
+        return; // Ne pas afficher l'erreur, juste changer de caméra
+      }
+      
       // Améliorer les messages d'erreur
       if (err.name === 'NotAllowedError') {
         onError?.(new Error('Permission caméra refusée. Veuillez autoriser l\'accès à la caméra.'));
@@ -58,7 +70,7 @@ const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
     },
     constraints: {
       video: {
-        facingMode: isMobile ? 'environment' : 'user', // Arrière sur mobile, frontale sur desktop
+        facingMode: cameraMode, // Utiliser le mode de caméra dynamique
         width: { ideal: 1280 },
         height: { ideal: 720 }
       }
@@ -71,7 +83,7 @@ const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
       }
     },
     onStart: () => {
-      console.log(`Scanner démarré avec caméra ${isMobile ? 'arrière' : 'frontale'}`);
+      console.log(`Scanner démarré avec caméra ${cameraMode === 'environment' ? 'arrière' : 'frontale'}`);
       onLoadedData?.();
     }
   });
@@ -108,7 +120,7 @@ const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
             <div className="text-center">
               <div>{t('child.qr.scanning')}</div>
               <div className="text-xs opacity-75 mt-1">
-                {isMobile ? '📱 Caméra arrière' : '💻 Caméra frontale'}
+                {cameraMode === 'environment' ? '📱 Caméra arrière' : '💻 Caméra frontale'}
                 <div className="text-xs opacity-50 mt-1">
                   {window.innerWidth}×{window.innerHeight}px
                 </div>
