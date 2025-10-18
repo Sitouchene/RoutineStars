@@ -20,15 +20,19 @@ export async function registerParent({ email, password, name }) {
   // Hasher le mot de passe
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Créer la famille et le parent en une transaction
+  // Créer le groupe et le parent en une transaction
   const result = await prisma.$transaction(async tx => {
-    const family = await tx.family.create({
-      data: { name: `Famille de ${name}` },
+    const group = await tx.group.create({
+      data: { 
+        type: 'family',
+        name: `Famille de ${name}`,
+        language: 'fr'
+      },
     });
 
     const parent = await tx.user.create({
       data: {
-        familyId: family.id,
+        groupId: group.id,
         role: USER_ROLES.PARENT,
         name,
         email,
@@ -36,14 +40,14 @@ export async function registerParent({ email, password, name }) {
       },
     });
 
-    return { family, parent };
+    return { group, parent };
   });
 
   // Générer le token
   const token = generateToken({
     userId: result.parent.id,
-    groupId: result.family.id,
-    familyId: result.family.id, // Alias pour compatibilité
+    groupId: result.group.id,
+    familyId: result.group.id, // Alias pour compatibilité
     role: USER_ROLES.PARENT,
   });
 
@@ -54,7 +58,7 @@ export async function registerParent({ email, password, name }) {
       name: result.parent.name,
       email: result.parent.email,
       role: result.parent.role,
-      familyId: result.family.id,
+      groupId: result.group.id,
     },
   };
 }
@@ -91,7 +95,7 @@ export async function loginParent({ email, password }) {
       name: user.name,
       email: user.email,
       role: user.role,
-      familyId: user.familyId,
+      groupId: user.groupId,
     },
   };
 }
@@ -129,7 +133,7 @@ export async function loginChild({ childId, pin }) {
       age: child.age,
       avatar: child.avatar,
       role: child.role,
-      familyId: child.familyId,
+      groupId: child.groupId,
     },
   };
 }

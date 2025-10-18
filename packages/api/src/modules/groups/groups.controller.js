@@ -123,3 +123,49 @@ export async function checkGroupCodeController(req, res, next) {
     next(error);
   }
 }
+
+/**
+ * GET /api/groups/:groupId/dashboard-stats
+ * Récupérer les statistiques dashboard pour un groupe
+ */
+export async function getGroupDashboardStatsHandler(req, res) {
+  try {
+    const { groupId } = req.params;
+    
+    // Vérifier que l'utilisateur appartient au groupe
+    if (req.user.groupId !== groupId) {
+      return res.status(403).json({ error: 'Accès non autorisé' });
+    }
+    
+    const stats = await groupsService.getGroupDashboardStats(groupId);
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching group dashboard stats:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * GET /api/groups/:groupId/notifications
+ * Récupérer les notifications pour un groupe
+ */
+export async function getGroupNotificationsHandler(req, res) {
+  try {
+    const { groupId } = req.params;
+    const { limit } = req.query;
+    
+    // Vérifier que l'utilisateur appartient au groupe
+    if (req.user.groupId !== groupId) {
+      return res.status(403).json({ error: 'Accès non autorisé' });
+    }
+    
+    const notifications = await groupsService.getGroupNotifications(
+      groupId,
+      limit ? parseInt(limit) : 10
+    );
+    res.json(notifications);
+  } catch (error) {
+    console.error('Error fetching group notifications:', error);
+    res.status(500).json({ error: error.message });
+  }
+}

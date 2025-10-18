@@ -131,3 +131,134 @@ export async function isGroupCodeAvailable(code) {
   
   return !existingGroup;
 }
+
+/**
+ * Récupérer les statistiques dashboard pour un groupe (parent/enseignant)
+ */
+export async function getGroupDashboardStats(groupId) {
+  const today = new Date();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - 7);
+  
+  const [activeChildren, tasksTotal, tasksCompleted, readingTotal, readingInProgress, pointsDistributed] = await Promise.all([
+    // Enfants du groupe (tous, pas seulement ceux connectés récemment)
+    prisma.user.count({
+      where: { 
+        groupId, 
+        role: { in: ['child', 'student'] }
+      }
+    }),
+    // Total de tâches assignées
+    prisma.taskAssignment.count({
+      where: { child: { groupId } }
+    }),
+    // Tâches complétées (soumissions validées)
+    prisma.daySubmission.count({
+      where: { 
+        child: { groupId },
+        validatedAt: { not: null }
+      }
+    }),
+    // Total de lectures assignées
+    prisma.readingAssignment.count({
+      where: { child: { groupId } }
+    }),
+    // Lectures en cours (avec progression mais pas terminées)
+    prisma.readingAssignment.count({
+      where: { 
+        child: { groupId },
+        progress: { 
+          isFinished: false,
+          currentPage: { gt: 0 }
+        }
+      }
+    }),
+    // Points distribués (optimisé avec le champ totalPointsEarned)
+    prisma.user.aggregate({
+      where: { 
+        groupId,
+        role: { in: ['child', 'student'] }
+      },
+      _sum: { totalPointsEarned: true }
+    })
+  ]);
+
+  return {
+    activeChildren,
+    tasksStats: {
+      total: tasksTotal,
+      completed: tasksCompleted,
+      completionRate: tasksTotal > 0 ? Math.round((tasksCompleted / tasksTotal) * 100) : 0
+    },
+    readingStats: {
+      total: readingTotal,
+      inProgress: readingInProgress,
+      completed: readingTotal - readingInProgress
+    },
+    pointsDistributed: pointsDistributed._sum.totalPointsEarned || 0
+  };
+}
+
+/**
+ * Récupérer les notifications pour un groupe
+ */
+export async function getGroupNotifications(groupId, limit = 10) {
+  const oneDayAgo = new Date(Date.now() - 86400000); // 24 heures
+  
+  const [newSubmissions, finishedBooks, pendingEvaluations] = await Promise.all([
+    // Nouvelles soumissions en attente
+    prisma.daySubmission.findMany({
+      where: { 
+        child: { groupId },
+        validatedAt: null
+      },
+      include: { 
+        child: { select: { id: true, name: true } }
+      },
+      orderBy: { submittedAt: 'desc' },
+      take: limit
+    }),
+    // Livres terminés récemment
+    prisma.readingAssignment.findMany({
+      where: { 
+        child: { groupId },
+        progress: { 
+          isFinished: true,
+          finishedAt: { gte: oneDayAgo }
+        }
+      },
+      include: { 
+        child: { select: { id: true, name: true } },
+        book: { select: { title: true } }
+      },
+      orderBy: { progress: { finishedAt: 'desc' } },
+      take: limit
+    }),
+    // Tâches en retard sans soumission
+    prisma.taskAssignment.count({
+      where: { 
+        child: { groupId },
+        endDate: { lt: new Date() },
+        isActive: true
+      }
+    })
+  ]);
+
+  return {
+    newSubmissions: newSubmissions.map(s => ({
+      type: 'submission',
+      message: `${s.child.name} a soumis une tâche`,
+      time: s.submittedAt,
+      childId: s.childId,
+      submissionId: s.id
+    })),
+    finishedBooks: finishedBooks.map(b => ({
+      type: 'book',
+      message: `${b.child.name} a terminé "${b.book.title}"`,
+      time: b.progress.finishedAt,
+      childId: b.childId,
+      bookId: b.bookId
+    })),
+    pendingCount: pendingEvaluations
+  };
+}

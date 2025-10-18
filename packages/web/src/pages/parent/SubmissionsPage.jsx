@@ -4,6 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { submissionsApi, tasksApi } from '../../lib/api-client';
 import { Calendar, CheckCircle, Clock, MessageSquare, Eye, Edit3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useSubmissionsRealtime } from '../../hooks/useRealtime';
 
 export default function SubmissionsPage() {
   const [selectedSubmission, setSelectedSubmission] = useState(null);
@@ -11,6 +12,9 @@ export default function SubmissionsPage() {
   const { getAuthHeader, user, group } = useAuthStore();
   const queryClient = useQueryClient();
   const { t, i18n } = useTranslation();
+
+  // Hook realtime pour les soumissions (écoute toutes les soumissions du groupe)
+  const { isConnected: submissionsRealtimeConnected } = useSubmissionsRealtime(null);
 
   // Récupérer les soumissions de la famille
   const { data: submissions = [], isLoading } = useQuery({

@@ -7,6 +7,9 @@ const router = Router();
 // Route pour que les enfants puissent mettre à jour leur avatar
 router.put('/:id/avatar', authenticate, childrenController.updateChildAvatarController);
 
+// Route pour obtenir les stats dashboard (accessible par l'enfant et les parents)
+router.get('/:childId/dashboard-stats', authenticate, childrenController.getChildDashboardStatsHandler);
+
 // Toutes les autres routes nécessitent authentification parent ou enseignant
 router.use(authenticate, requireParentOrTeacher);
 

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/authStore';
-import { Home, Users, ListTodo, BarChart3, LogOut, Calendar, CheckCircle, Settings, Grid3X3, PanelRightOpen, PanelRightClose, Tag } from 'lucide-react';
+import { Home, Users, ListTodo, BarChart3, LogOut, Calendar, CheckCircle, Settings, Grid3X3, PanelRightOpen, PanelRightClose, Tag, BookOpen, QrCode, Bell } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import ChildrenPage from './ChildrenPage';
 import TasksPage from './TasksPage';
 import AssignmentsPage from './AssignmentsPage';
@@ -11,64 +13,175 @@ import SubmissionsPage from './SubmissionsPage';
 import StatsPage from './StatsPage';
 import MessagesRulesPage from './MessagesRules';
 import CategoriesPage from './CategoriesPage';
+import SettingsPage from './SettingsPage';
+import BooksPage from './BooksPage';
+import ReadingAssignmentsPage from './ReadingAssignmentsPage';
+import BooksAssignmentMatrix from './BooksAssignmentMatrix';
 import PendingSubmissionsWidget from '../../components/parent/PendingSubmissionsWidget';
 import LanguageSelector from '../../components/LanguageSelector';
+import Logo from '../../components/branding/Logo';
+import AnimatedCounter from '../../components/animations/AnimatedCounter';
+import GroupQRCode from '../../components/parent/GroupQRCode';
+import { groupsApi } from '../../lib/api-client';
 
 function DashboardHome() {
-  const { user, group } = useAuthStore();
+  const { user, group, getAuthHeader } = useAuthStore();
   const { t } = useTranslation();
+  const [showQRModal, setShowQRModal] = useState(false);
+  
+  // Stats dashboard connectées
+  const { data: dashboardStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['groupDashboard', group?.id],
+    queryFn: () => groupsApi.getDashboardStats(group.id, getAuthHeader()),
+    enabled: !!group?.id
+  });
+  
+  // Notifications temps réel
+  const { data: notifications } = useQuery({
+    queryKey: ['groupNotifications', group?.id],
+    queryFn: () => groupsApi.getNotifications(group.id, getAuthHeader(), 10),
+    enabled: !!group?.id,
+    refetchInterval: 30000 // Actualiser toutes les 30s
+  });
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <h2 className="text-xl md:text-2xl font-bold">
-        {t('dashboard.welcome', { name: user?.name })}
+    <div className="space-y-6">
+      <h2 className="text-2xl font-display font-bold text-anthracite dark:text-cream">
+        {t('parent.dashboard.welcome', { name: user?.name })}
       </h2>
+      
+      {/* Notifications */}
+      <div className="bg-white dark:bg-anthracite-light rounded-2xl p-6 shadow-md">
+        <div className="flex items-center gap-3 mb-4">
+          <Bell className="w-6 h-6 text-secondary" />
+          <h3 className="text-lg font-display font-semibold">{t('parent.dashboard.notifications')}</h3>
+          {notifications?.pendingCount > 0 && (
+            <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full">
+              {notifications.pendingCount}
+            </span>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          {notifications?.notifications && notifications.notifications.length > 0 ? (
+            notifications.notifications.map((notif, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className={`p-3 rounded-lg border-l-4 ${
+                  notif.type === 'submission' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' :
+                  'border-green-500 bg-green-50 dark:bg-green-900/20'
+                }`}
+              >
+                <p className="text-sm font-medium">{notif.message}</p>
+                <p className="text-xs text-gray-500">{new Date(notif.time).toLocaleString()}</p>
+              </motion.div>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500 text-center py-4">{t('parent.dashboard.noNotifications')}</p>
+          )}
+        </div>
+      </div>
+      
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white dark:bg-anthracite-light rounded-2xl p-6 shadow-md"
+        >
+          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+            {t('parent.dashboard.activeChildren')}
+          </h3>
+          <p className="text-3xl font-display font-bold text-brand">
+            {statsLoading ? '...' : <AnimatedCounter value={dashboardStats?.activeChildren || 0} />}
+          </p>
+        </motion.div>
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white dark:bg-anthracite-light rounded-2xl p-6 shadow-md"
+        >
+          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+            {t('parent.dashboard.tasksCompleted')}
+          </h3>
+          <p className="text-3xl font-display font-bold text-secondary">
+            {statsLoading ? '...' : (
+              <>
+                <AnimatedCounter value={dashboardStats?.tasksStats.completed || 0} />
+                <span className="text-lg text-gray-400">
+                  /{dashboardStats?.tasksStats.total || 0}
+                </span>
+              </>
+            )}
+          </p>
+        </motion.div>
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white dark:bg-anthracite-light rounded-2xl p-6 shadow-md"
+        >
+          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+            {t('parent.dashboard.readingInProgress')}
+          </h3>
+          <p className="text-3xl font-display font-bold text-accent">
+            {statsLoading ? '...' : <AnimatedCounter value={dashboardStats?.readingStats.inProgress || 0} />}
+          </p>
+        </motion.div>
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white dark:bg-anthracite-light rounded-2xl p-6 shadow-md"
+        >
+          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+            {t('parent.dashboard.pointsDistributed')}
+          </h3>
+          <p className="text-3xl font-display font-bold text-purple-600">
+            {statsLoading ? '...' : <AnimatedCounter value={dashboardStats?.pointsDistributed || 0} />}
+          </p>
+        </motion.div>
+      </div>
       
       {/* Widget des soumissions en attente */}
       <PendingSubmissionsWidget />
       
-      {/* Code de groupe pour connexion enfant */}
-      <div className="card">
-        <h3 className="font-semibold text-base md:text-lg mb-2">
-          🔑 {t('dashboard.groupCode', { type: t(`dashboard.${group?.type || 'family'}`) })}
-        </h3>
-        <p className="text-xs md:text-sm text-gray-600 mb-3">
-          {t('dashboard.shareCode', { members: t(`dashboard.members.${group?.type === 'family' ? 'children' : 'students'}`) })}
-        </p>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <code className="bg-gray-100 px-3 py-2 rounded-lg font-mono text-sm text-center sm:text-left flex-1">
-            {group?.code || user?.groupId}
-          </code>
-          <button
-            onClick={() => navigator.clipboard.writeText(group?.code || user?.groupId)}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition-colors whitespace-nowrap"
-          >
-            {t('dashboard.copy')}
-          </button>
-        </div>
-        {group && (
-          <p className="text-xs text-gray-500 mt-2">
-            {group.name} • {group.type === 'family' ? t('dashboard.family') : t('dashboard.classroom')}
-          </p>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
-        <div className="card">
-          <h3 className="font-semibold text-sm md:text-lg mb-1 md:mb-2 text-gray-700">
-            {t(`dashboard.${group?.type === 'family' ? 'children' : 'students'}`)}
-          </h3>
-          <p className="text-2xl md:text-3xl font-bold text-primary-600">0</p>
-        </div>
-        <div className="card">
-          <h3 className="font-semibold text-sm md:text-lg mb-1 md:mb-2 text-gray-700">{t('tasks.title')}</h3>
-          <p className="text-2xl md:text-3xl font-bold text-primary-600">0</p>
-        </div>
-        <div className="card sm:col-span-2 md:col-span-1">
-          <h3 className="font-semibold text-sm md:text-lg mb-1 md:mb-2 text-gray-700">{t('stats.completionRate')}</h3>
-          <p className="text-2xl md:text-3xl font-bold text-primary-600">0%</p>
+      {/* QR Code Card */}
+      <div className="bg-gradient-to-br from-mint-400 to-purple-400 rounded-2xl p-6 shadow-lg">
+        <div className="flex items-center justify-between text-white">
+          <div>
+            <h3 className="text-xl font-display font-bold mb-2">
+              {t('parent.dashboard.qrCode')}
+            </h3>
+            <p className="text-sm opacity-90 mb-4">
+              {t('parent.dashboard.qrCodeDescription')}
+            </p>
+            <button
+              onClick={() => setShowQRModal(true)}
+              className="px-6 py-3 bg-white text-brand rounded-xl font-medium hover:bg-cream transition-colors flex items-center gap-2"
+            >
+              <QrCode className="w-5 h-5" />
+{t('parent.dashboard.showQR')}
+            </button>
+          </div>
+          <QrCode className="w-24 h-24 opacity-30" />
         </div>
       </div>
+      
+      <GroupQRCode
+        groupCode={group?.code}
+        groupName={group?.name}
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+      />
     </div>
   );
 }
@@ -126,8 +239,11 @@ export default function ParentDashboard() {
     { path: '/parent/assignments', icon: Calendar, label: t('dashboard.assignments') },
     { path: '/parent/assignment-matrix', icon: Grid3X3, label: t('dashboard.matrix') },
     { path: '/parent/submissions', icon: CheckCircle, label: t('dashboard.submissions') },
+    { path: '/parent/books', icon: BookOpen, label: t('books.title', 'Livres') },
+    { path: '/parent/reading-assignments', icon: BookOpen, label: t('books.assignments', 'Lectures assignées') },
+    { path: '/parent/books-assignment-matrix', icon: Grid3X3, label: t('books.matrixNav', 'Matrice lectures') },
     { path: '/parent/stats', icon: BarChart3, label: t('dashboard.stats') },
-    { path: '/parent/messages-rules', icon: Settings, label: t('dashboard.messages') },
+    { path: '/parent/settings', icon: Settings, label: t('settings.title', 'Paramètres') },
   ];
 
   return (
@@ -141,8 +257,10 @@ export default function ParentDashboard() {
         <div className="p-4 md:p-6 h-full flex flex-col">
           {/* Header du sidebar */}
           <div className="mb-6 md:mb-8">
-            <h1 className="text-lg md:text-xl font-bold text-primary-600">⭐ RoutineStars</h1>
-            <p className="text-xs md:text-sm text-gray-500">Espace Parent</p>
+            <Logo size="sm" variant="compact" />
+            <p className="text-xs md:text-sm text-gray-500 mt-2">
+              {t('dashboard.parentSpace', 'Espace Parent')}
+            </p>
           </div>
 
           {/* Navigation */}
@@ -188,7 +306,7 @@ export default function ParentDashboard() {
           >
             <PanelRightClose className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-bold text-primary-600">⭐ RoutineStars</h1>
+          <Logo size="sm" variant="compact" />
           <LanguageSelector variant="dropdown" />
         </header>
       )}
@@ -213,8 +331,12 @@ export default function ParentDashboard() {
             <Route path="assignments" element={<AssignmentsPage />} />
             <Route path="assignment-matrix" element={<AssignmentMatrix />} />
             <Route path="submissions" element={<SubmissionsPage />} />
+            <Route path="books" element={<BooksPage />} />
+            <Route path="reading-assignments" element={<ReadingAssignmentsPage />} />
+            <Route path="books-assignment-matrix" element={<BooksAssignmentMatrix />} />
             <Route path="stats" element={<StatsPage />} />
             <Route path="messages-rules" element={<MessagesRulesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Routes>
         </main>
     </div>

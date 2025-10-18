@@ -1,5 +1,3 @@
-// This is your Prisma schema file
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,207 +8,304 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Groupe (famille ou classe)
 model Group {
-  id        String   @id @default(uuid())
-  type      String   // 'family' | 'classroom'
-  name      String
-  code      String   @unique // Code partageable comme 'PANDA_ROUX_305'
-  language  String   @default("fr") // 'fr' | 'en' | 'ar'
-  country   String?  // 'CA' | 'DZ' (Phase 2)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  users         User[]
-  categories    Category[]
-  taskTemplates TaskTemplate[]
-  dailyMessages DailyMessage[]
+  id                String              @id @default(uuid())
+  type              String              @default("family")
+  name              String
+  code              String              @unique
+  language          String              @default("fr")
+  country           String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  books             Book[]
+  users             User[]
+  categories        Category[]
+  dailyMessages     DailyMessage[]
   evaluationWindows EvaluationWindow[]
+  taskTemplates     TaskTemplate[]
 
   @@map("groups")
 }
 
-// Catégories de tâches
 model Category {
-  id          String   @id @default(uuid())
-  groupId     String?  // null pour les catégories système, obligatoire pour les catégories personnalisées
-  title       String   // Clé technique (household, routine, study)
-  display     String   // Nom d'affichage (Maison, Routine, Études)
-  description String   // Description détaillée
-  icon        String?  // Icône de la catégorie
-  isSystem    Boolean  @default(false) // true pour les catégories système (protégées)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
+  id            String         @id @default(uuid())
+  title         String
+  display       String
+  description   String
+  icon          String?
+  isSystem      Boolean        @default(false)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  groupId       String?
   group         Group?         @relation(fields: [groupId], references: [id], onDelete: Cascade)
   taskTemplates TaskTemplate[]
 
-  @@unique([groupId, title], name: "category_group_title_unique")
+  @@unique([groupId, title], name: "category_group_title_unique", map: "category_group_title_unique")
   @@map("categories")
 }
 
-// Utilisateurs (parents/enfants ou enseignants/élèves)
 model User {
-  id       String  @id @default(uuid())
-  groupId  String
-  role     String // 'parent' ou 'child' (family) | 'teacher' ou 'student' (classroom)
-  name     String
-  email    String? @unique // Uniquement pour parents/enseignants
-  password String? // Uniquement pour parents/enseignants (haché)
-  age      Int? // Uniquement pour enfants/élèves
-  pin      String? // Uniquement pour enfants/élèves (haché)
-  avatar   String?
-  theme    String  @default("default") // 'default' | 'boy' | 'girl'
+  id                 String              @id @default(uuid())
+  role               String
+  name               String
+  email              String?             @unique
+  password           String?
+  age                Int?
+  pin                String?
+  avatar             String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  groupId            String?
+  theme              String              @default("default")
+  lastLoginAt        DateTime?           // Nouveau champ pour tracking connexions
+  totalPointsEarned  Int                 @default(0) // Nouveau champ pour optimiser les requêtes
+  group              Group?              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  bookLikes          BookLike[]
+  bookReviews        BookReview[]
+  dailyMessages      DailyMessage[]
+  daySubmissions     DaySubmission[]
+  evaluationWindows  EvaluationWindow[]
+  assignedReadings   ReadingAssignment[] @relation("ReadingAssigner")
+  readingAssignments ReadingAssignment[] @relation("ReadingChild")
+  rewards            Reward[]
+  assignments        TaskAssignment[]
+  tasks              Task[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  group       Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  tasks       Task[]
-  rewards     Reward[]
-  assignments TaskAssignment[]
-  daySubmissions DaySubmission[]
-  dailyMessages DailyMessage[]
-  evaluationWindows EvaluationWindow[]
-
+  @@index([groupId, role], map: "idx_users_groupId_role")
+  @@index([groupId, lastLoginAt], map: "idx_users_groupId_lastLoginAt")
+  @@index([totalPointsEarned], map: "idx_users_totalPointsEarned")
   @@map("users")
 }
 
-// Modèles de tâches (créés par parents/enseignants)
 model TaskTemplate {
-  id          String  @id @default(uuid())
-  groupId     String
-  categoryId  String  // Relation vers Category (obligatoire)
+  id          String           @id @default(uuid())
+  categoryId  String
   title       String
   icon        String?
-  points      Int     @default(5)
-  recurrence  String // 'daily', 'weekday', 'weekend', etc.
+  points      Int              @default(5)
+  recurrence  String
   description String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  group      Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  category   Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  tasks      Task[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  groupId     String?
+  group       Group?           @relation(fields: [groupId], references: [id], onDelete: Cascade)
   assignments TaskAssignment[]
+  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tasks       Task[]
 
+  @@index([categoryId], map: "idx_task_templates_categoryId")
   @@map("task_templates")
 }
 
-// Tâches assignées quotidiennes
 model Task {
-  id             String    @id @default(uuid())
+  id             String       @id @default(uuid())
   taskTemplateId String
-  userId         String // ID de l'enfant
-  date           DateTime // Date de la tâche
-  status         String    @default("assigned") // 'assigned', 'self_evaluated', 'submitted', 'validated'
-  selfScore      Int? // 0-100
-  parentScore    Int? // 0-100
+  userId         String
+  date           DateTime
+  status         String       @default("assigned")
+  selfScore      Int?
+  parentScore    Int?
   parentComment  String?
-  lockedAt       DateTime? // Quand le parent a validé
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  taskTemplate TaskTemplate @relation(fields: [taskTemplateId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lockedAt       DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  taskTemplate   TaskTemplate @relation(fields: [taskTemplateId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, taskTemplateId, date])
+  @@index([taskTemplateId], map: "idx_tasks_taskTemplateId")
+  @@index([userId, date], map: "idx_tasks_userId_date")
+  @@index([userId, date, selfScore], map: "idx_tasks_userId_date_score")
   @@map("tasks")
 }
 
-// Messages du jour (par groupe ou ciblé à un enfant/élève)
 model DailyMessage {
   id        String   @id @default(uuid())
-  groupId   String
-  childId   String?  // si null => message global au groupe
+  childId   String?
   date      DateTime
   message   String
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  groupId   String?
+  group     Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  child     User?    @relation(fields: [childId], references: [id])
 
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  child User? @relation(fields: [childId], references: [id])
-
-  @@unique([groupId, childId, date])
+  @@index([childId], map: "idx_daily_messages_childId")
+  @@index([groupId, date], map: "idx_daily_messages_groupId_date")
   @@map("daily_messages")
 }
 
-// Fenêtre horaire d'autoévaluation/soumission
 model EvaluationWindow {
   id        String   @id @default(uuid())
-  groupId   String
-  childId   String?   // si null => règle par défaut pour le groupe
-  startTime String    // format HH:mm
-  endTime   String    // format HH:mm
-  daysMask  String    // ex: "1,1,1,1,1,1,1" pour L..D
-  timezone  String    // ex: "Europe/Paris"
-
+  childId   String?
+  startTime String
+  endTime   String
+  daysMask  String
+  timezone  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  groupId   String?
+  group     Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  child     User?    @relation(fields: [childId], references: [id])
 
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  child User? @relation(fields: [childId], references: [id])
-
-  @@unique([groupId, childId])
+  @@index([childId], map: "idx_evaluation_windows_childId")
   @@map("evaluation_windows")
 }
 
-// Assignations de tâches (qui peut avoir quelle tâche)
 model TaskAssignment {
-  id             String    @id @default(uuid())
-  taskTemplateId String
-  childId        String
-  startDate      DateTime
-  endDate        DateTime?
-  isActive       Boolean   @default(true)
-  // Options de récurrence spécifiques à l'assignation (prioritaires sur le template)
-  recurrence           String?     // ex: 'weekly_days' | 'every_n_days' | etc.
-  recurrenceDays       String?     // CSV des jours 0-6 pour weekly_days, ex: "1,3,5"
-  recurrenceStartDate  DateTime?   // date de départ pour every_n_days
-  recurrenceInterval   Int?        // intervalle en jours pour every_n_days
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                  String       @id @default(uuid())
+  taskTemplateId      String
+  childId             String
+  startDate           DateTime
+  endDate             DateTime?
+  isActive            Boolean      @default(true)
+  recurrence          String?
+  recurrenceDays      String?
+  recurrenceStartDate DateTime?
+  recurrenceInterval  Int?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  child               User         @relation(fields: [childId], references: [id], onDelete: Cascade)
+  taskTemplate        TaskTemplate @relation(fields: [taskTemplateId], references: [id], onDelete: Cascade)
 
-  taskTemplate TaskTemplate @relation(fields: [taskTemplateId], references: [id], onDelete: Cascade)
-  child        User          @relation(fields: [childId], references: [id], onDelete: Cascade)
-
+  @@index([childId], map: "idx_task_assignments_childId")
+  @@index([childId, isActive], map: "idx_task_assignments_childId_isActive")
+  @@index([taskTemplateId], map: "idx_task_assignments_taskTemplateId")
   @@map("task_assignments")
 }
 
-// Soumissions de journée par enfant
 model DaySubmission {
-  id        String   @id @default(uuid())
-  childId   String
-  date      DateTime // Date de la soumission
-  submittedAt DateTime @default(now()) // Quand l'enfant a soumis
-  validatedAt DateTime? // Quand le parent a validé
-  parentComment String? // Commentaire général du parent pour la journée
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  child User @relation(fields: [childId], references: [id], onDelete: Cascade)
+  id            String    @id @default(uuid())
+  childId       String
+  date          DateTime
+  submittedAt   DateTime  @default(now())
+  validatedAt   DateTime?
+  parentComment String?
+  pointsEarned  Int       @default(0) // Nouveau champ pour les points gagnés
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  child         User      @relation(fields: [childId], references: [id], onDelete: Cascade)
 
   @@unique([childId, date])
+  @@index([childId, date], map: "idx_day_submissions_childId_date")
+  @@index([validatedAt], map: "idx_day_submissions_validatedAt")
+  @@index([pointsEarned], map: "idx_day_submissions_pointsEarned")
   @@map("day_submissions")
 }
 
-// Récompenses et badges
 model Reward {
   id        String   @id @default(uuid())
   userId    String
   badgeType String
   earnedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  @@index([userId], map: "idx_rewards_userId")
+  @@index([userId, earnedAt], map: "idx_rewards_userId_earnedAt")
   @@map("rewards")
 }
 
+model Book {
+  id                 String              @id @default(uuid())
+  groupId            String?
+  googleBookId       String?
+  title              String
+  author             String?
+  totalPages         Int
+  isbn               String?
+  coverImageUrl      String?
+  language           String              @default("fr")
+  genres             String[]             // Nouveaux genres
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  likes              BookLike[]
+  reviews            BookReview[]
+  group              Group?              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  readingAssignments ReadingAssignment[]
 
+  @@map("books")
+}
 
+model ReadingAssignment {
+  id             String           @id @default(uuid())
+  bookId         String
+  childId        String
+  assignedById   String?
+  assignmentType String
+  totalPoints    Int              @default(0)
+  startDate      DateTime?
+  dueDate        DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  assignedBy     User?            @relation("ReadingAssigner", fields: [assignedById], references: [id])
+  book           Book             @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  child          User             @relation("ReadingChild", fields: [childId], references: [id], onDelete: Cascade)
+  progress       ReadingProgress?
+
+  @@map("reading_assignments")
+}
+
+model ReadingProgress {
+  id                  String            @id @default(uuid())
+  readingAssignmentId String            @unique
+  currentPage         Int               @default(0)
+  currentPoints       Int               @default(0)
+  lastMilestone       Int               @default(0)
+  isFinished          Boolean           @default(false)
+  finishedAt          DateTime?
+  lastPageUpdate      DateTime          @default(now())
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  readingAssignment   ReadingAssignment @relation(fields: [readingAssignmentId], references: [id], onDelete: Cascade)
+
+  @@map("reading_progress")
+}
+
+model BookReview {
+  id            String   @id @default(uuid())
+  bookId        String
+  reviewerId    String
+  rating        Int
+  comment       String?
+  isChildReview Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  book          Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  reviewer      User     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, reviewerId])
+  @@map("book_reviews")
+}
+
+model BookLike {
+  id        String   @id @default(uuid())
+  bookId    String
+  userId    String
+  createdAt DateTime @default(now())
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, userId])
+  @@map("book_likes")
+}
+
+model BookTemplate {
+  id            String   @id @default(uuid())
+  title         String
+  author        String
+  totalPages    Int
+  isbn          String?
+  coverImageUrl String?
+  language      String   @default("fr")
+  genres        String[]
+  googleBookId  String?  @unique
+  synopsis      String?
+  ageRange      Json?
+  themes        String[]
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("book_templates")
+}

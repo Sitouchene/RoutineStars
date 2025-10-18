@@ -10,11 +10,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'RoutineStars',
-        short_name: 'RoutineStars',
-        description: 'Application de gestion de routines pour enfants',
-        theme_color: '#6366f1',
-        background_color: '#ffffff',
+        name: 'mOOtify',
+        short_name: 'mOOtify',
+        description: 'Chaque effort compte - Application de motivation pour enfants',
+        theme_color: '#58D6A8',
+        background_color: '#FAF9F6',
         display: 'standalone',
         icons: [
           {
@@ -52,8 +52,18 @@ export default defineConfig({
     },
   },
   server: {
-    host:true,
+    host: true,
     port: 5173,
+    proxy: {
+      '/api': {
+        // Permet de garder VITE_API_URL se terminant par /api
+        // Exemple: VITE_API_URL=http://192.168.2.16:3001/api
+        target: process.env.VITE_API_URL || 'http://localhost:3001/api',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
   },
 });
 

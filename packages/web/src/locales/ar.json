@@ -37,8 +37,74 @@
   "assignModal.activateNow": "تفعيل هذا التعيين فورًا",
   "assignModal.assign": "تعيين",
   "assignModal.assigning": "جار التعيين...",
-  "app.name": "RoutineStars",
+  "child.navigation.home": "الرئيسية",
+  "child.navigation.day": "اليوم",
+  "child.navigation.agenda": "الأجندة",
+  "child.navigation.reads": "القراءات",
+  "child.navigation.stats": "الإحصائيات",
+  "child.navigation.profile": "الملف الشخصي",
+  
+  "child.home.title": "الرئيسية",
+  "child.home.subtitle": "مرحباً {name}! 🌟",
+  "child.home.totalPoints": "إجمالي النقاط",
+  "child.home.booksRead": "الكتب المقروءة",
+  "child.home.weeklyProgress": "تقدم الأسبوع",
+  "child.home.currentBook": "الكتاب الحالي",
+  "child.home.myBadges": "شاراتي",
+  "child.home.notifications": "الإشعارات",
+  "child.home.myTasks": "مهامي",
+  "child.home.myAgenda": "أجندتي",
+  "child.home.myReads": "قراءاتي",
+  "child.home.myStats": "إحصائياتي",
+  
+  "child.reads.title": "قراءاتي",
+  "child.reads.subtitle": "اكتشف كتبك وتقدم في قراءاتك",
+  "child.reads.recommendedBy": "موصى به من",
+  "child.reads.chosenByChild": "اخترته بنفسي",
+  "child.reads.page": "صفحة",
+  "child.reads.of": "من",
+  "child.reads.rating": "التقييم",
+  "child.reads.comment": "تعليق",
+  "child.reads.updateProgress": "تحديث",
+  "child.reads.updateRating": "تقييم",
+  "child.reads.confirmFinish": "هل أنت متأكد من أنك انتهيت من هذا الكتاب؟",
+  "child.reads.assignedBy": "مكلف من {name}",
+  "child.reads.recommended": "موصى به من {name}",
+  "child.reads.chosen": "اخترته بنفسك",
+  "child.reads.finished": "انتهى!",
+  "child.reads.nextMilestone": "المرحلة التالية",
+  "child.reads.pagesLeft": "فقط {pages} صفحات متبقية",
+  "child.reads.earnPoints": "لكسب {points} نقاط!",
+  "child.reads.bookFinished": "انتهى الكتاب! لقد حصلت على جميع النقاط!",
+  "child.reads.markFinished": "وضع علامة كمنتهي",
+  "child.reads.noBooks": "لا توجد قراءات حتى الآن",
+  "child.reads.noBooksDesc": "سيقوم والدك أو معلمك بتعيين بعضها قريبًا!",
+  
+  "child.agenda.title": "أجندتي",
+  "child.agenda.subtitle": "تصور مهامك القادمة",
+  "child.agenda.week": "الأسبوع",
+  "child.agenda.month": "الشهر",
+  "child.agenda.tasksComing": "المهام القادمة",
+  "child.agenda.pointsPossible": "النقاط المحتملة",
+  
+  "child.profile.title": "ملفي الشخصي",
+  "child.profile.subtitle": "خصص تجربتك",
+  "child.profile.theme": "المظهر",
+  "child.profile.language": "اللغة",
+  "child.profile.information": "المعلومات",
+  "child.profile.name": "الاسم",
+  "child.profile.group": "المجموعة",
+  "child.profile.changeAvatar": "تغيير الصورة",
+  
+  "child.header.preferences": "التفضيلات",
+  "child.header.logout": "تسجيل الخروج",
+  
+  "child.stats.title": "إحصائياتي",
+  "child.stats.subtitle": "تتبع تقدمك وأداءك",
+
+  "app.name": "mOOtify",
   "app.tagline": "حوّل روتينك إلى نجاح!",
+  "app.slogan": "كل جهد يُحسب",
   
   "common.welcome": "مرحبا",
   "common.loading": "جار التحميل...",
@@ -122,6 +188,7 @@
   "child.invalidPin": "PIN غير صحيح",
   
   "dashboard.home": "الرئيسية",
+  "dashboard.parentSpace": "مساحة الوالدين",
   "dashboard.children": "الأطفال",
   "dashboard.students": "التلاميذ",
   "dashboard.categories": "الفئات",
@@ -421,6 +488,162 @@
   "avatar.styles.pixelDesc": "أسلوب كلاسيكي",
   "avatar.styles.surprise": "مفاجأة",
   "avatar.styles.surpriseDesc": "مزيج إبداعي",
-  "avatar.previewAlt": "معاينة الصورة الشخصية"
+  "avatar.previewAlt": "معاينة الصورة الشخصية",
+
+  "themes.title": "اختيار المظهر",
+  "themes.default": "mOOtify",
+  "themes.defaultDesc": "مظهر متوازن ورعاية",
+  "themes.kidsboy": "المغامر",
+  "themes.kidsboyDesc": "مظهر أزرق-أخضر ديناميكي",
+  "themes.kidsgirl": "الإبداعي",
+  "themes.kidsgirlDesc": "مظهر وردي-مرجاني ناعم",
+
+  "settings.title": "الإعدادات",
+  "settings.description": "خصص تجربتك في mOOtify",
+  "settings.appearance": "المظهر",
+  "settings.appearanceDesc": "خصص ألوان الواجهة",
+  "settings.language": "اللغة",
+  "settings.languageDesc": "اختر لغة التطبيق",
+  "settings.notifications": "الإشعارات",
+  "settings.comingSoon": "قريبًا",
+  "settings.chooseTheme": "اختر مظهرك المفضل!",
+
+  "books.title": "الكتب",
+  "books.subtitle": "إدارة مكتبتك وتعيين القراءات",
+  "books.assignments": "القراءات المخصصة",
+  "books.import": "استيراد من Google Books",
+  "books.searchPlaceholder": "البحث بالعنوان أو المؤلف...",
+  "books.allLanguages": "كل اللغات",
+  "books.noBooks": "لا توجد كتب في الكتالوج",
+  "books.importFirst": "استيراد كتابك الأول",
+  "books.pages": "{count} صفحات",
+  "books.assignments_count": "{count} تكليف(ات)",
+  "books.delete": "حذف",
+  "books.import.title": "استيراد من Google Books",
+  "books.import.search": "البحث عن كتاب",
+  "books.import.searching": "جار البحث...",
+  "books.import.import": "استيراد",
+  "books.import.importing": "جار الاستيراد...",
+  "books.import.imported": "تم الاستيراد",
+  "books.import.close": "إغلاق",
+  "books.import.noResults": "ابحث عن كتاب للبدء",
+
+  "reading.assign.title": "تعيين قراءة",
+  "reading.assign.book": "الكتاب",
+  "reading.assign.selectBook": "اختر كتابًا",
+  "reading.assign.child": "الطفل",
+  "reading.assign.selectChild": "اختر طفلاً",
+  "reading.assign.type": "النوع",
+  "reading.assign.assigned": "مكلف (إلزامي)",
+  "reading.assign.recommended": "موصى به",
+  "reading.assign.totalPoints": "مجموع النقاط",
+  "reading.assign.pointsDistribution": "توزيع النقاط: 25% ← 50% ← 75% ← 100%",
+  "reading.assign.startDate": "تاريخ البدء (اختياري)",
+  "reading.assign.dueDate": "تاريخ الاستحقاق (اختياري)",
+  "reading.assign.assign": "تعيين",
+  "reading.assign.assigning": "جار التعيين...",
+  "reading.assign.cancel": "إلغاء",
+  "reading.assign.newAssignment": "تكليف جديد",
+  "reading.assign.noAssignments": "لا توجد تكليفات حتى الآن",
+  "reading.assign.assignedTo": "مكلف إلى",
+  "reading.assign.recommendedTo": "موصى به إلى",
+  "reading.assign.finished": "انتهى",
+  "reading.progress": "{current}/{total} صفحات",
+  "reading.pointsEarned": "تم كسب {points} نقاط",
+
+  "books.title": "فهرس الكتب",
+  "books.subtitle": "إدارة مكتبتك وتعيين القراءات",
+  "books.addManual": "إضافة يدوياً",
+  "books.importGoogle": "استيراد من Google Books",
+  "books.searchPlaceholder": "البحث بالعنوان أو المؤلف...",
+  "books.allLanguages": "جميع اللغات",
+  "books.noBooks": "لا توجد كتب في الفهرس",
+  "books.addFirstBook": "استيراد كتابك الأول",
+  "books.assignations": "تعيين(ات)",
+  "books.global": "عالمي",
+  "books.group": "مجموعة",
+  "books.reviews": "التقييمات",
+  "books.assign": "تعيين",
+  "books.delete": "حذف",
+  "books.manualForm.title": "إضافة كتاب يدوياً",
+  "books.manualForm.subtitle": "إنشاء كتاب جديد في فهرسك",
+  "books.manualForm.bookTitle": "عنوان الكتاب",
+  "books.manualForm.author": "المؤلف",
+  "books.manualForm.totalPages": "عدد الصفحات",
+  "books.manualForm.language": "اللغة",
+  "books.manualForm.isbn": "ISBN (اختياري)",
+  "books.manualForm.coverImageUrl": "رابط الغلاف (اختياري)",
+  "books.manualForm.genres": "الأجناس",
+  "books.manualForm.addBook": "إضافة الكتاب",
+  "books.manualForm.cancel": "إلغاء",
+  "books.manualForm.creating": "جاري الإنشاء...",
+  "books.genres.Fantasy": "خيال",
+  "books.genres.Jeunesse": "شباب",
+  "books.genres.Histoire": "تاريخ",
+  "books.genres.Science": "علوم",
+  "books.genres.Comics": "كوميكس",
+  "books.genres.Education": "تعليم",
+  "books.reviews.title": "التقييمات والتعليقات",
+  "books.reviews.globalRating": "التقييم العام",
+  "books.reviews.excellent": "ممتاز",
+  "books.reviews.veryGood": "جيد جداً",
+  "books.reviews.good": "جيد",
+  "books.reviews.average": "متوسط",
+  "books.reviews.poor": "ضعيف",
+  "books.reviews.ratingDistribution": "توزيع التقييمات",
+  "books.reviews.comments": "التعليقات",
+  "books.reviews.noComments": "لا توجد تعليقات بعد",
+  "books.reviews.child": "طفل",
+  "books.reviews.close": "إغلاق",
+  "books.assign.title": "تعيين قراءة",
+  "books.assign.children": "الأطفال",
+  "books.assign.selectAll": "تحديد الكل",
+  "books.assign.deselectAll": "إلغاء تحديد الكل",
+  "books.assign.childrenSelected": "طفل(أطفال) محدد(ين)",
+  "books.assign.assignmentType": "نوع التعيين",
+  "books.assign.assigned": "معين (إجباري)",
+  "books.assign.recommended": "موصى به",
+  "books.assign.totalPoints": "إجمالي النقاط",
+  "books.assign.pointsDistribution": "توزيع النقاط: 25% ← 50% ← 75% ← 100%",
+  "books.assign.startDate": "تاريخ البداية",
+  "books.assign.dueDate": "تاريخ الاستحقاق",
+  "books.assign.assignReading": "تعيين القراءة",
+  "books.assign.assigning": "جاري التعيين...",
+  "books.assign.cancel": "إلغاء",
+  "books.matrixTitle": "مصفوفة القراءات",
+  "books.matrixSubtitle": "تعيين القراءات لكل طفل",
+  "books.matrixNav": "مصفوفة القراءات",
+  "books.library.title": "مكتبة الكتب",
+  "books.library.subtitle": "مجموعة من الكتب الموصى بها جاهزة للاستيراد",
+  "books.library.action": "المكتبة",
+  "books.library.allLanguages": "الكل",
+  "books.library.import": "استيراد",
+  "books.library.importing": "جاري الاستيراد...",
+  "books.library.importSuccess": "تم استيراد الكتاب بنجاح",
+  "books.library.importError": "خطأ أثناء الاستيراد",
+  "books.library.noTemplates": "لا توجد قوالب متاحة",
+  "books.library.close": "إغلاق",
+  "books.library.years": "سنة",
+
+  "parent.dashboard.welcome": "مرحباً {{name}}",
+  "parent.dashboard.notifications": "الإشعارات",
+  "parent.dashboard.activeChildren": "الأطفال النشطون",
+  "parent.dashboard.tasksCompleted": "المهام المكتملة",
+  "parent.dashboard.readingInProgress": "القراءة قيد التقدم",
+  "parent.dashboard.pointsDistributed": "النقاط الموزعة",
+  "parent.dashboard.qrCode": "رمز QR للمجموعة",
+  "parent.dashboard.qrCodeDescription": "امسح هذا الرمز بهاتفك للانضمام للمجموعة",
+  "parent.dashboard.showQR": "إظهار رمز QR",
+  "parent.dashboard.noNotifications": "لا توجد إشعارات جديدة",
+  "parent.dashboard.pendingCount": "في الانتظار",
+
+  "child.qr.scanTitle": "مسح رمز QR",
+  "child.qr.scanSubtitle": "امسح رمز QR المقدم من والدك للانضمام للمجموعة",
+  "child.qr.scanButton": "مسح",
+  "child.qr.scanning": "جاري المسح...",
+  "child.qr.scanSuccess": "تم مسح الرمز بنجاح!",
+  "child.qr.scanError": "خطأ أثناء المسح",
+  "child.qr.cameraPermission": "مطلوب إذن الكاميرا",
+  "child.qr.retry": "إعادة المحاولة"
 }
 

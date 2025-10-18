@@ -8,6 +8,8 @@ import {
   deleteGroupController,
   regenerateGroupCodeController,
   checkGroupCodeController,
+  getGroupDashboardStatsHandler,
+  getGroupNotificationsHandler,
 } from './groups.controller.js';
 import { authenticate } from '../../middlewares/auth.middleware.js';
 
@@ -19,6 +21,10 @@ router.get('/:id', authenticate, getGroupController);
 router.put('/:id', authenticate, updateGroupController);
 router.delete('/:id', authenticate, deleteGroupController);
 router.post('/:id/regenerate-code', authenticate, regenerateGroupCodeController);
+
+// Routes pour dashboard stats et notifications
+router.get('/:groupId/dashboard-stats', authenticate, getGroupDashboardStatsHandler);
+router.get('/:groupId/notifications', authenticate, getGroupNotificationsHandler);
 
 // Routes publiques (pour la connexion enfant/élève)
 router.get('/code/:code', getGroupByCodeController);

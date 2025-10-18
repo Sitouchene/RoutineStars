@@ -3,13 +3,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, CheckCircle, Circle, Star, Send, BarChart3, Edit3 } from 'lucide-react';
+import { LogOut, CheckCircle, Circle, Star, Send, BarChart3, Edit3, Palette } from 'lucide-react';
 import { TASK_ICONS, TASK_CATEGORIES } from 'shared/constants';
 import { tasksApi, submissionsApi, messagesApi, evalWindowApi, childrenApi } from '../../lib/api-client';
 import TaskCard from '../../components/child/TaskCard';
 import AvatarSelector from '../../components/child/AvatarSelector';
+import RealtimeStatus from '../../components/RealtimeStatus';
+import ThemeSelector from '../../components/ThemeSelector';
+import ChildHeader from '../../components/child/ChildHeader';
 import { seedToAvatarUrl } from '../../utils/avatarUtils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTasksRealtime, useSubmissionsRealtime } from '../../hooks/useRealtime';
 
 export default function ChildDashboard() {
   const { t } = useTranslation();
@@ -22,7 +26,12 @@ export default function ChildDashboard() {
   // État local pour forcer la désactivation après soumission
   const [isLocallySubmitted, setIsLocallySubmitted] = useState(false);
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
   const todayKey = new Date().toISOString().split('T')[0];
+
+  // Hooks realtime pour la synchronisation en temps réel
+  const { isConnected: tasksRealtimeConnected } = useTasksRealtime(user?.id, todayKey);
+  const { isConnected: submissionsRealtimeConnected } = useSubmissionsRealtime(user?.id);
 
   // Récupérer les soumissions de l'enfant
   const { data: submissions = [] } = useQuery({
@@ -187,8 +196,14 @@ export default function ChildDashboard() {
   const updateAvatarMutation = useMutation({
     mutationFn: (avatar) => childrenApi.updateAvatar(user.id, avatar, getAuthHeader()),
     onSuccess: (updatedUser) => {
-      // Mettre à jour l'utilisateur dans le store
-      useAuthStore.getState().login(updatedUser, useAuthStore.getState().token);
+      // Mettre à jour uniquement l'utilisateur sans altérer le token ni le group
+      const current = useAuthStore.getState();
+      useAuthStore.setState({
+        user: updatedUser,
+        token: current.token,
+        isAuthenticated: true,
+        group: current.group,
+      });
       queryClient.invalidateQueries({ queryKey: ['childSubmissions', user?.id] });
     },
   });
@@ -198,74 +213,32 @@ export default function ChildDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 to-purple-500 p-4">
+    <div className="min-h-screen bg-gradient-mootify p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl p-6 mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative group">
-              <button
-                onClick={() => setShowAvatarSelector(true)}
-                className="w-16 h-16 rounded-full overflow-hidden border-4 border-gray-200 hover:border-primary-300 transition-all duration-200 group-hover:scale-105"
-              >
-                {user?.avatar ? (
-                  <img
-                    src={seedToAvatarUrl(user.avatar) || user.avatar}
-                    alt={`Avatar de ${user.name}`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-3xl">
-                    👦
-                  </div>
-                )}
-              </button>
-              <div className="absolute -bottom-1 -right-1 bg-primary-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Edit3 className="w-3 h-3 text-white" />
-              </div>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">{t('child.hello', { name: user?.name })}</h1>
-              <p className="text-gray-600">{new Date().toLocaleString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-              {dailyMessage?.message && (
-                <p className="mt-1 text-sm text-primary-700 bg-primary-50 px-3 py-1 rounded-lg inline-block">{dailyMessage.message}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate('/child/stats')}
-              className="p-3 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600 hover:text-primary-600"
-            >
-              <BarChart3 className="w-5 h-5" />
-              <span className="text-sm font-medium">{t('child.myStats')}</span>
-            </button>
-            <button
-              onClick={handleLogout}
-              className="p-3 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <LogOut className="w-6 h-6 text-gray-600" />
-            </button>
-          </div>
-        </div>
+        <ChildHeader 
+          title="Ma journée" 
+          subtitle={dailyMessage?.message || "Mes tâches du jour"}
+          onOpenTheme={() => setShowThemeSelector(true)}
+        />
 
         {/* Score du jour */}
-        <div className="bg-white rounded-2xl p-8 text-center mb-6">
-          <p className="text-gray-600 mb-2">{t('child.todayScore')}</p>
-          <p className="text-6xl font-bold text-primary-600">{completionRate}%</p>
-          <p className="text-gray-500 mt-2">
-            {completionRate >= 80 ? t('child.excellent') : 
-             completionRate >= 60 ? t('child.wellDone') : 
-             t('child.keepGoing')}
+        <div className="bg-white dark:bg-anthracite-light rounded-2xl p-8 text-center mb-6 shadow-lg">
+          <p className="text-gray-600 dark:text-gray-400 mb-2 font-medium">{t('child.todayScore')}</p>
+          <p className="text-6xl font-display font-bold text-brand">{completionRate}%</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">
+            {completionRate >= 80 ? '🌟 ' + t('child.excellent') : 
+             completionRate >= 60 ? '👍 ' + t('child.wellDone') : 
+             '💪 ' + t('child.keepGoing')}
           </p>
-          <div className="mt-4 text-sm text-gray-500">
+          <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
             {t('child.tasksCompleted', { completed: completedTasks, total: totalTasks })}
           </div>
         </div>
 
         {/* Statut de soumission */}
         {tasks.length > 0 && (
-          <div className="bg-white rounded-2xl p-6 mb-6">
+          <div className="bg-white dark:bg-anthracite-light rounded-2xl p-6 mb-6 shadow-lg">
             {isDaySubmitted ? (
               <div className="text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -322,14 +295,14 @@ export default function ChildDashboard() {
         )}
 
         {/* Tâches du jour */}
-        <div className="bg-white rounded-2xl p-6">
+        <div className="bg-white dark:bg-anthracite-light rounded-2xl p-6 shadow-lg">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="flex items-center justify-between mb-6"
           >
-            <h2 className="text-xl font-bold text-gray-900">{t('child.myTasks')}</h2>
+            <h2 className="text-xl font-display font-bold text-anthracite dark:text-cream">{t('child.myTasks')}</h2>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Circle className="w-4 h-4" />
               {t('child.tasksCount', { count: tasks.length })}
@@ -403,6 +376,66 @@ export default function ChildDashboard() {
           onClose={() => setShowAvatarSelector(false)}
         />
       )}
+
+      {/* Modal de personnalisation - Sélecteur de thème */}
+      <AnimatePresence>
+        {showThemeSelector && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowThemeSelector(false)}
+              className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+            >
+              {/* Modal Content */}
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl p-6 md:p-8 max-w-2xl w-full shadow-2xl"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-mint-100 rounded-full flex items-center justify-center">
+                      <Palette className="w-6 h-6 text-mint-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-display font-bold text-anthracite">
+                        {t('settings.appearance', 'Apparence')}
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        {t('settings.chooseTheme', 'Choisis ton thème préféré !')}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowThemeSelector(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <ThemeSelector />
+
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => setShowThemeSelector(false)}
+                    className="btn btn-primary px-6"
+                  >
+                    {t('common.close', 'Fermer')}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

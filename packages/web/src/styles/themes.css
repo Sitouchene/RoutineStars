@@ -1,0 +1,98 @@
+/* mOOtify Theme System */
+
+:root {
+  /* Default Theme - mOOtify */
+  --theme-primary: #58D6A8;
+  --theme-primary-light: #99f6e0;
+  --theme-primary-dark: #14b8a6;
+  --theme-secondary: #B69CF4;
+  --theme-secondary-light: #e9d5ff;
+  --theme-secondary-dark: #7e22ce;
+  --theme-accent: #58D6A8;
+  --theme-background: #FAF9F6;
+  --theme-text: #2E2E2E;
+  --theme-text-light: #6b7280;
+}
+
+/* Kids Boy Theme - Bleu-Vert */
+[data-theme="kids-boy"] {
+  --theme-primary: #38bdf8;
+  --theme-primary-light: #bae6fd;
+  --theme-primary-dark: #0284c7;
+  --theme-secondary: #14b8a6;
+  --theme-secondary-light: #99f6e0;
+  --theme-secondary-dark: #0f9488;
+  --theme-accent: #0ea5e9;
+  --theme-background: #f0f9ff;
+  --theme-text: #0c4a6e;
+  --theme-text-light: #475569;
+}
+
+/* Kids Girl Theme - Rose-Corail Doux */
+[data-theme="kids-girl"] {
+  --theme-primary: #fb7185;
+  --theme-primary-light: #fecdd3;
+  --theme-primary-dark: #e11d48;
+  --theme-secondary: #f9a8d4;
+  --theme-secondary-light: #fce7f3;
+  --theme-secondary-dark: #db2777;
+  --theme-accent: #f43f5e;
+  --theme-background: #fff1f2;
+  --theme-text: #881337;
+  --theme-text-light: #9f1239;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --theme-background: #121212;
+    --theme-text: #FAF9F6;
+    --theme-text-light: #d1d5db;
+  }
+  
+  [data-theme="kids-boy"] {
+    --theme-background: #0c1821;
+    --theme-text: #e0f2fe;
+    --theme-text-light: #bae6fd;
+  }
+  
+  [data-theme="kids-girl"] {
+    --theme-background: #1a0a0f;
+    --theme-text: #ffe4e6;
+    --theme-text-light: #fecdd3;
+  }
+}
+
+/* Theme Utility Classes */
+.theme-bg-primary {
+  background-color: var(--theme-primary);
+}
+
+.theme-bg-secondary {
+  background-color: var(--theme-secondary);
+}
+
+.theme-bg-accent {
+  background-color: var(--theme-accent);
+}
+
+.theme-text-primary {
+  color: var(--theme-primary);
+}
+
+.theme-text-secondary {
+  color: var(--theme-secondary);
+}
+
+.theme-text {
+  color: var(--theme-text);
+}
+
+.theme-border-primary {
+  border-color: var(--theme-primary);
+}
+
+.theme-border-secondary {
+  border-color: var(--theme-secondary);
+}
+

@@ -226,7 +226,7 @@ export default function RoleSelectionScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-mootify flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
@@ -240,10 +240,10 @@ export default function RoleSelectionScreen() {
           <div className="text-4xl mb-4">
             {selectedMode.type === 'family' ? '🏠' : '🎓'}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-display font-bold text-anthracite dark:text-cream mb-2">
             {selectedMode.name}
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 dark:text-gray-300">
             Choisis ton rôle :
           </p>
         </div>
@@ -258,16 +258,16 @@ export default function RoleSelectionScreen() {
                 className={`
                   p-6 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105
                   ${selectedRole?.type === role.type
-                    ? 'border-blue-500 bg-blue-50 shadow-lg'
-                    : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-25'
+                    ? 'border-brand bg-brand-light/40 shadow-lg'
+                    : 'border-gray-200 bg-white hover-border-brand hover-bg-brand-light'
                   }
                 `}
               >
                 <div className="text-4xl mb-3">{role.icon}</div>
-                <div className="text-xl font-semibold text-gray-800 mb-1">
+                <div className="text-xl font-display font-semibold text-anthracite dark:text-cream mb-1">
                   {role.name}
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-600 dark:text-gray-300">
                   {role.description}
                 </div>
               </button>
@@ -277,19 +277,19 @@ export default function RoleSelectionScreen() {
 
         {/* Authentication Form */}
         {selectedRole && (
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+          <div className="bg-white dark:bg-anthracite-light rounded-2xl p-8 shadow-lg ring-1 ring-black/5 dark:ring-white/5">
+            <h2 className="text-2xl font-display font-bold text-anthracite dark:text-cream mb-6 text-center">
               Authentification {selectedRole.name}
             </h2>
 
             {/* Toggle Login/Register */}
-            <div className="flex mb-6 bg-gray-100 rounded-xl p-1">
+            <div className="flex mb-6 bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
               <button
                 onClick={() => setAuthMode('login')}
                 className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
                   authMode === 'login'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
+                    ? 'bg-white dark:bg-anthracite text-brand shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover-text-brand'
                 }`}
               >
                 Se connecter
@@ -298,8 +298,8 @@ export default function RoleSelectionScreen() {
                 onClick={() => setAuthMode('register')}
                 className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
                   authMode === 'register'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
+                    ? 'bg-white dark:bg-anthracite text-brand shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover-text-brand'
                 }`}
               >
                 S'inscrire

@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/authStore';
 import { authService } from '../services/authService';
 import { apiClient } from '../lib/api-client';
 import { seedToAvatarUrl } from '../utils/avatarUtils';
+import QRScanner from '../components/child/QRScanner';
 
 export default function ChildLoginScreen() {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ export default function ChildLoginScreen() {
   const [savedGroups, setSavedGroups] = useState([]);
   const [children, setChildren] = useState([]);
   const [loadingChildren, setLoadingChildren] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
 
   const navigate = useNavigate();
   const { login } = useAuthStore();
@@ -45,6 +47,42 @@ export default function ChildLoginScreen() {
       return updatedGroups;
     });
   }, []);
+
+  // Gérer le scan QR
+  const handleQRScanSuccess = (qrData) => {
+    try {
+      console.log('QR Code scanné:', qrData);
+      
+      // Essayer de parser comme URL d'abord
+      try {
+        const url = new URL(qrData);
+        const code = url.searchParams.get('code');
+        
+        if (code) {
+          console.log('Code extrait de l\'URL:', code);
+          setGroupCode(code);
+          setShowQRScanner(false);
+          loadGroupChildren(code);
+          return;
+        }
+      } catch (urlError) {
+        console.log('Pas une URL valide, essai direct du code');
+      }
+      
+      // Si ce n'est pas une URL, essayer directement comme code de groupe
+      if (qrData && qrData.length > 0) {
+        console.log('Utilisation directe du code:', qrData);
+        setGroupCode(qrData);
+        setShowQRScanner(false);
+        loadGroupChildren(qrData);
+      } else {
+        setError('Code de groupe invalide dans le QR code');
+      }
+    } catch (err) {
+      console.error('Erreur lors du traitement du QR code:', err);
+      setError('Format de QR code invalide');
+    }
+  };
 
   // Charger les groupes sauvegardés au montage
   useEffect(() => {
@@ -147,7 +185,7 @@ export default function ChildLoginScreen() {
   // Interface de sélection de groupe
   if (showGroupInput) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-mootify flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           {/* Bouton retour */}
           <button
@@ -158,9 +196,9 @@ export default function ChildLoginScreen() {
             {t('common.back')}
           </button>
 
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
+          <div className="bg-white dark:bg-anthracite-light rounded-2xl p-8 shadow-lg ring-1 ring-black/5 dark:ring-white/5">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-primary-600 mb-2">
+              <h1 className="text-3xl font-display font-bold text-anthracite dark:text-cream mb-2">
                 👦 {t('welcome.child')}
               </h1>
               <p className="text-gray-600">
@@ -187,7 +225,7 @@ export default function ChildLoginScreen() {
                       setChildren(group.children);
                       setShowGroupInput(false);
                     }}
-                    className="w-full p-4 border-2 border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-colors text-left"
+                    className="w-full p-4 border-2 border-gray-200 rounded-xl hover-border-brand hover-bg-brand-light transition-colors text-left"
                   >
                     <div className="font-semibold text-lg">
                       {group.groupName}
@@ -218,14 +256,14 @@ export default function ChildLoginScreen() {
             ) : (
               <form onSubmit={handleGroupSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-anthracite dark:text-cream mb-2">
                     {t('child.groupCode')}
                   </label>
                   <input
                     type="text"
                     value={groupCode}
                     onChange={e => setGroupCode(e.target.value.toUpperCase())}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center font-mono text-lg"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 ring-brand focus:border-transparent text-center font-mono text-lg bg-white dark:bg-anthracite-dark dark:text-cream"
                     placeholder="PANDA ROUX 305"
                     required
                   />
@@ -246,17 +284,17 @@ export default function ChildLoginScreen() {
 
                 <button
                   type="button"
-                  className="w-full border-2 border-dashed border-gray-300 text-gray-600 py-3 rounded-lg font-semibold hover:border-primary-500 hover:text-primary-600 transition-colors flex items-center justify-center gap-2"
-                  disabled
+                  onClick={() => setShowQRScanner(true)}
+                  className="w-full border-2 border-dashed border-gray-300 text-gray-600 py-3 rounded-lg font-semibold hover-border-brand hover-text-brand transition-colors flex items-center justify-center gap-2"
                 >
                   <QrCode className="w-5 h-5" />
-                  Scanner un QR Code (bientôt)
+                  Scanner un QR Code
                 </button>
 
                 <button
                   type="submit"
                   disabled={loadingChildren}
-                  className="w-full bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full btn btn-primary py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingChildren ? t('common.loading') : t('common.next')}
                 </button>
@@ -271,7 +309,7 @@ export default function ChildLoginScreen() {
   // Interface de sélection d'enfant
   if (!selectedChild) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-mootify flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           <button
             onClick={() => {
@@ -285,9 +323,9 @@ export default function ChildLoginScreen() {
             {t('common.back')}
           </button>
 
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
+          <div className="bg-white dark:bg-anthracite-light rounded-2xl p-8 shadow-lg ring-1 ring-black/5 dark:ring-white/5">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              <h2 className="text-2xl font-display font-bold text-anthracite dark:text-cream mb-2">
                 {t('welcome.child')}
               </h2>
               <p className="text-gray-600">
@@ -311,7 +349,7 @@ export default function ChildLoginScreen() {
                   <button
                     key={child.id}
                     onClick={() => handleChildSelect(child)}
-                    className="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-all transform hover:scale-105"
+                    className="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover-border-brand hover-bg-brand-light transition-all transform hover:scale-105"
                   >
                     <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200">
                       {child.avatar ? (
@@ -342,7 +380,7 @@ export default function ChildLoginScreen() {
 
   // Interface de saisie du PIN
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-mootify flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <button
           onClick={() => setSelectedChild(null)}
@@ -352,9 +390,9 @@ export default function ChildLoginScreen() {
           {t('common.back')}
         </button>
 
-        <div className="bg-white rounded-2xl p-8 shadow-lg">
+        <div className="bg-white dark:bg-anthracite-light rounded-2xl p-8 shadow-lg ring-1 ring-black/5 dark:ring-white/5">
           <div className="text-center mb-6">
-            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-primary-200 mx-auto mb-4">
+            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-brand mx-auto mb-4">
               {selectedChild.avatar ? (
                 <img
                   src={seedToAvatarUrl(selectedChild.avatar) || selectedChild.avatar}
@@ -367,7 +405,7 @@ export default function ChildLoginScreen() {
                 </div>
               )}
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-1">
+            <h2 className="text-2xl font-display font-bold text-anthracite dark:text-cream mb-1">
               {t('common.welcome')}, {selectedChild.name} ! 👋
             </h2>
             <p className="text-gray-600">{t('child.pin')}</p>
@@ -425,7 +463,7 @@ export default function ChildLoginScreen() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full btn btn-primary py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? t('auth.connecting') : t('child.loginButton')}
               </button>

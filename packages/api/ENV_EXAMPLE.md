@@ -4,7 +4,7 @@ Créer un fichier `.env` à la racine de `packages/api/` avec :
 
 ```
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/routinestars?schema=public"
+DATABASE_URL="postgresql://azfostjyjgmmqlhkvjdc:routinestars2025@localhost:5432/routinestars?schema=public"
 
 # JWT Secret (générer une clé aléatoire sécurisée)
 JWT_SECRET="votre-cle-secrete-tres-longue-et-aleatoire"

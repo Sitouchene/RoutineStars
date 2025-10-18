@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { statsApi } from '../../lib/api-client';
 import { Calendar, BarChart3, TrendingUp, Award, Clock, Target, Star, Trophy, ArrowLeft } from 'lucide-react';
+import ChildHeader from '../../components/child/ChildHeader';
 
 export default function ChildStatsPage() {
   const { t } = useTranslation();
@@ -20,42 +21,25 @@ export default function ChildStatsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 to-purple-500 p-4">
+    <div className="min-h-screen bg-gradient-mootify p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-2xl p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-3xl">
-                📊
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">{t('child.myStatsTitle')}</h1>
-                <p className="text-gray-600">{t('child.lookAtProgress')}</p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate('/child')}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm font-medium">{t('child.backToDay')}</span>
-            </button>
-          </div>
-        </div>
+        <ChildHeader 
+          title={t('child.stats.title')} 
+          subtitle={t('child.stats.subtitle')}
+        />
 
         {/* Sélection de vue */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-          <h3 className="font-semibold text-gray-900 mb-3">{t('child.choosePeriod')}</h3>
+        <div className="bg-white dark:bg-anthracite-light rounded-2xl border border-gray-200 dark:border-gray-700 p-4 mb-6 shadow-md">
+          <h3 className="font-display font-semibold text-anthracite dark:text-cream mb-3">{t('child.choosePeriod')}</h3>
           <div className="flex gap-2 flex-wrap">
             {viewModes.map(mode => (
               <button
                 key={mode.key}
                 onClick={() => setViewMode(mode.key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
                   viewMode === mode.key
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-brand text-white shadow-md scale-105'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 <mode.icon className="w-4 h-4" />
@@ -66,7 +50,7 @@ export default function ChildStatsPage() {
         </div>
 
         {/* Contenu des statistiques */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white dark:bg-anthracite-light rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-lg">
           {viewMode === 'daily' && (
             <DailyStatsView 
               childId={user?.id} 
@@ -141,49 +125,49 @@ function DailyStatsView({ childId, date, onDateChange, getAuthHeader }) {
     <div className="space-y-6">
       {/* Sélecteur de date */}
       <div className="flex items-center gap-4">
-        <label className="font-medium text-gray-700">{t('child.date')}</label>
+        <label className="font-medium text-gray-700 dark:text-gray-300">{t('child.date')}</label>
         <input
           type="date"
           value={date}
           onChange={(e) => onDateChange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-mint-400 focus:border-transparent bg-white dark:bg-anthracite-dark dark:text-cream"
         />
       </div>
 
       {/* Statistiques principales avec design enfant */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center">
-          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Target className="w-6 h-6 text-white" />
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl p-4 text-center shadow-md bg-gradient-mint ring-1 ring-black/5 dark:ring-white/5">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm bg-brand">
+            <Target className="w-5 h-5 text-white" />
           </div>
-          <h3 className="text-3xl font-bold text-blue-600">{stats.completionRate}%</h3>
-          <p className="text-sm text-blue-700 font-medium">{t('child.superScore')}</p>
-          <div className="mt-2 text-xs text-blue-600">
-            {stats.completionRate >= 80 ? t('child.excellent') :
-             stats.completionRate >= 60 ? t('child.wellDone') :
-             stats.completionRate >= 40 ? t('child.continue') : t('child.youCanDoBetter')}
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
-          <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Award className="w-6 h-6 text-white" />
-          </div>
-          <h3 className="text-3xl font-bold text-green-600">{stats.earnedPoints}</h3>
-          <p className="text-sm text-green-700 font-medium">{t('child.pointsEarned')}</p>
-          <div className="mt-2 text-xs text-green-600">
-            {t('child.pointsPossible', { total: stats.totalPoints })}
+          <h3 className="text-xl font-display font-bold text-anthracite dark:text-cream">{stats.completionRate}%</h3>
+          <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">{t('child.superScore')}</p>
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-300">
+            {stats.completionRate >= 80 ? '🌟 ' + t('child.excellent') :
+             stats.completionRate >= 60 ? '👍 ' + t('child.wellDone') :
+             stats.completionRate >= 40 ? '💪 ' + t('child.continue') : '🎯 ' + t('child.youCanDoBetter')}
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
-          <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Trophy className="w-6 h-6 text-white" />
+        <div className="rounded-2xl p-4 text-center shadow-md bg-gradient-purple ring-1 ring-black/5 dark:ring-white/5">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm bg-secondary">
+            <Award className="w-5 h-5 text-white" />
           </div>
-          <h3 className="text-3xl font-bold text-purple-600">{stats.totalTasks}</h3>
-          <p className="text-sm text-purple-700 font-medium">{t('child.tasksFinished')}</p>
-          <div className="mt-2 text-xs text-purple-600">
-            {t('child.greatJob')}
+          <h3 className="text-xl font-display font-bold text-anthracite dark:text-cream">{stats.earnedPoints}</h3>
+          <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">{t('child.pointsEarned')}</p>
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-300">
+            🪙 {t('child.pointsPossible', { total: stats.totalPoints })}
+          </div>
+        </div>
+
+        <div className="rounded-2xl p-4 text-center shadow-md bg-gradient-mootify ring-1 ring-black/5 dark:ring-white/5">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm bg-gradient-mootify">
+            <Trophy className="w-5 h-5 text-white" />
+          </div>
+          <h3 className="text-xl font-display font-bold text-anthracite dark:text-cream">{stats.totalTasks}</h3>
+          <p className="text-xs text-gray-700 dark:text-gray-300 font-medium">{t('child.tasksFinished')}</p>
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-300">
+            ✨ {t('child.greatJob')}
           </div>
         </div>
       </div>
@@ -191,8 +175,8 @@ function DailyStatsView({ childId, date, onDateChange, getAuthHeader }) {
       {/* Détail des tâches avec design enfant */}
       {stats.tasks.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-500" />
+          <h3 className="text-lg font-display font-semibold text-anthracite dark:text-cream mb-4 flex items-center gap-2">
+            <Star className="w-5 h-5 text-brand" />
             {t('child.myDayTasks')}
           </h3>
           <div className="space-y-3">
@@ -247,48 +231,48 @@ function WeeklyStatsView({ childId, startDate, getAuthHeader }) {
 
   return (
     <div className="space-y-6">
-      {/* Statistiques principales */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center">
-          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+      {/* Statistiques principales (hebdomadaire) */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl p-6 text-center shadow-md bg-gradient-mint ring-1 ring-black/5 dark:ring-white/5">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm bg-brand">
             <Target className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-3xl font-bold text-blue-600">{stats.weeklyCompletionRate}%</h3>
-          <p className="text-sm text-blue-700 font-medium">{t('child.weekScore')}</p>
-          <div className="mt-2 text-xs text-blue-600">
-            {stats.weeklyCompletionRate >= 80 ? t('child.perfectWeek') :
-             stats.weeklyCompletionRate >= 60 ? t('child.goodWeek') :
-             stats.weeklyCompletionRate >= 40 ? t('child.correctWeek') : t('child.weekToImprove')}
+          <h3 className="text-3xl font-display font-bold text-anthracite dark:text-cream">{stats.weeklyCompletionRate}%</h3>
+          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{t('child.weekScore')}</p>
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-300">
+            {stats.weeklyCompletionRate >= 80 ? '🎉 ' + t('child.perfectWeek') :
+             stats.weeklyCompletionRate >= 60 ? '👏 ' + t('child.goodWeek') :
+             stats.weeklyCompletionRate >= 40 ? '👌 ' + t('child.correctWeek') : '💪 ' + t('child.weekToImprove')}
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
-          <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+        <div className="rounded-2xl p-6 text-center shadow-md bg-gradient-purple ring-1 ring-black/5 dark:ring-white/5">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm bg-secondary">
             <Award className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-3xl font-bold text-green-600">{stats.totalWeekEarnedPoints}</h3>
-          <p className="text-sm text-green-700 font-medium">{t('child.pointsThisWeek')}</p>
-          <div className="mt-2 text-xs text-green-600">
-            {t('child.pointsPossible', { total: stats.totalWeekPoints })}
+          <h3 className="text-3xl font-display font-bold text-anthracite dark:text-cream">{stats.totalWeekEarnedPoints}</h3>
+          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{t('child.pointsThisWeek')}</p>
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-300">
+            🪙 {t('child.pointsPossible', { total: stats.totalWeekPoints })}
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
-          <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+        <div className="rounded-2xl p-6 text-center shadow-md bg-gradient-mootify ring-1 ring-black/5 dark:ring-white/5">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm bg-gradient-mootify">
             <BarChart3 className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-3xl font-bold text-purple-600">{stats.totalWeekPoints}</h3>
-          <p className="text-sm text-purple-700 font-medium">{t('child.pointsPossible', { total: stats.totalWeekPoints })}</p>
-          <div className="mt-2 text-xs text-purple-600">
-            {t('child.keepItUp')}
+          <h3 className="text-3xl font-display font-bold text-anthracite dark:text-cream">{stats.totalWeekPoints}</h3>
+          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{t('child.pointsPossible', { total: stats.totalWeekPoints })}</p>
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-300">
+            ✨ {t('child.keepItUp')}
           </div>
         </div>
       </div>
 
       {/* Graphique des jours avec design enfant */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-blue-500" />
+        <h3 className="text-lg font-display font-semibold text-anthracite dark:text-cream mb-4 flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-mint-400" />
           {t('child.weekProgress')}
         </h3>
         <div className="grid grid-cols-7 gap-2">
@@ -352,48 +336,48 @@ function MonthlyStatsView({ childId, year, month, getAuthHeader }) {
 
   return (
     <div className="space-y-6">
-      {/* Statistiques principales */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center">
-          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+      {/* Statistiques principales (mensuelles) */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl p-6 text-center shadow-md bg-gradient-mint ring-1 ring-black/5 dark:ring-white/5">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm bg-brand">
             <Target className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-3xl font-bold text-blue-600">{stats.monthlyCompletionRate}%</h3>
-          <p className="text-sm text-blue-700 font-medium">{t('child.monthScore')}</p>
-          <div className="mt-2 text-xs text-blue-600">
-            {stats.monthlyCompletionRate >= 80 ? t('child.exceptionalMonth') :
-             stats.monthlyCompletionRate >= 60 ? t('child.excellentMonth') :
-             stats.monthlyCompletionRate >= 40 ? t('child.goodMonth') : t('child.monthToImprove')}
+          <h3 className="text-3xl font-display font-bold text-anthracite dark:text-cream">{stats.monthlyCompletionRate}%</h3>
+          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{t('child.monthScore')}</p>
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-300">
+            {stats.monthlyCompletionRate >= 80 ? '🏆 ' + t('child.exceptionalMonth') :
+             stats.monthlyCompletionRate >= 60 ? '🌟 ' + t('child.excellentMonth') :
+             stats.monthlyCompletionRate >= 40 ? '👍 ' + t('child.goodMonth') : '💪 ' + t('child.monthToImprove')}
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
-          <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+        <div className="rounded-2xl p-6 text-center shadow-md bg-gradient-purple ring-1 ring-black/5 dark:ring-white/5">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm bg-secondary">
             <Award className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-3xl font-bold text-green-600">{stats.totalMonthEarnedPoints}</h3>
-          <p className="text-sm text-green-700 font-medium">{t('child.pointsThisMonth')}</p>
-          <div className="mt-2 text-xs text-green-600">
-            {t('child.pointsPossible', { total: stats.totalMonthPoints })}
+          <h3 className="text-3xl font-display font-bold text-anthracite dark:text-cream">{stats.totalMonthEarnedPoints}</h3>
+          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{t('child.pointsThisMonth')}</p>
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-300">
+            🪙 {t('child.pointsPossible', { total: stats.totalMonthPoints })}
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
-          <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+        <div className="rounded-2xl p-6 text-center shadow-md bg-gradient-mootify ring-1 ring-black/5 dark:ring-white/5">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm bg-gradient-mootify">
             <TrendingUp className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-3xl font-bold text-purple-600">{stats.totalMonthPoints}</h3>
-          <p className="text-sm text-purple-700 font-medium">{t('child.pointsPossible', { total: stats.totalMonthPoints })}</p>
-          <div className="mt-2 text-xs text-purple-600">
-            {t('child.youAreAmazing')}
+          <h3 className="text-3xl font-display font-bold text-anthracite dark:text-cream">{stats.totalMonthPoints}</h3>
+          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{t('child.pointsPossible', { total: stats.totalMonthPoints })}</p>
+          <div className="mt-2 text-xs text-gray-700 dark:text-gray-300">
+            🎉 {t('child.youAreAmazing')}
           </div>
         </div>
       </div>
 
       {/* Calendrier mensuel avec design enfant */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-purple-500" />
+        <h3 className="text-lg font-display font-semibold text-anthracite dark:text-cream mb-4 flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-purple-400" />
           {t('child.calendar', { month: monthNames[month - 1], year })}
         </h3>
         <div className="grid grid-cols-7 gap-1 text-center">

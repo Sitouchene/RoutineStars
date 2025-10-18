@@ -89,10 +89,40 @@ export async function updateChildAvatarController(req, res, next) {
       return res.status(403).json({ error: 'Accès non autorisé' });
     }
     
-    const child = await childrenService.updateChildAvatar(childId, req.user.familyId, avatar);
+    const child = await childrenService.updateChildAvatar(childId, req.user.groupId, avatar);
     res.json(child);
   } catch (error) {
     next(error);
+  }
+}
+
+/**
+ * GET /api/children/:childId/dashboard-stats
+ * Récupérer les statistiques dashboard pour un enfant
+ */
+export async function getChildDashboardStatsHandler(req, res) {
+  try {
+    const { childId } = req.params;
+    
+    // Vérifier que l'utilisateur peut accéder aux stats de cet enfant
+    if (req.user.role === 'child' && req.user.id !== childId) {
+      return res.status(403).json({ error: 'Accès non autorisé' });
+    }
+    
+    // Vérifier que l'enfant appartient au même groupe (pour les parents)
+    if (req.user.role === 'parent') {
+      const child = await childrenService.getChildren(req.user.groupId);
+      const childExists = child.some(c => c.id === childId);
+      if (!childExists) {
+        return res.status(404).json({ error: 'Enfant non trouvé' });
+      }
+    }
+    
+    const stats = await childrenService.getChildDashboardStats(childId);
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching child dashboard stats:', error);
+    res.status(500).json({ error: error.message });
   }
 }
 

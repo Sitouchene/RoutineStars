@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* mOOtify Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Rubik:wght@400;500;600&family=Baloo+2:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,25 +7,131 @@
 
 @layer base {
   body {
-    @apply font-sans antialiased;
+    @apply font-sans antialiased; /* gardons Tailwind pour la typo */
+    background-color: var(--theme-background);
+    color: var(--theme-text);
+  }
+  
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-color: var(--theme-background);
+      color: var(--theme-text);
+    }
+  }
+}
+
+@layer components {
+  /* mOOtify Button Styles */
+  .btn {
+    @apply px-4 py-2 rounded-2xl font-medium transition-all duration-200;
+    @apply hover:scale-105 active:scale-95;
+  }
+  
+  .btn-primary {
+    @apply text-white shadow-md hover:shadow-lg;
+    background-color: var(--theme-primary);
+    transition: background-color 0.2s ease;
+  }
+  .btn-primary:hover {
+    background-color: var(--theme-primary-dark);
+  }
+  
+  .btn-secondary {
+    @apply text-white shadow-md hover:shadow-lg;
+    background-color: var(--theme-secondary);
+    transition: background-color 0.2s ease;
+  }
+  .btn-secondary:hover {
+    background-color: var(--theme-secondary-dark);
+  }
+  
+  .btn-ghost {
+    @apply bg-transparent border-2;
+    color: var(--theme-text);
+    border-color: var(--theme-primary);
+    transition: background-color 0.2s ease;
+  }
+  .btn-ghost:hover {
+    background-color: var(--theme-primary-light);
+  }
+  
+  /* mOOtify Card Styles */
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6;
+    @apply hover:shadow-md transition-shadow duration-200;
+  }
+  
+  .card-elevated {
+    @apply bg-white rounded-2xl shadow-lg border border-gray-100 p-6;
+  }
+  
+  /* Dark mode cards */
+  @media (prefers-color-scheme: dark) {
+    .card, .card-elevated {
+      background-color: #3a3a3a; /* anthracite-light */
+      border-color: #374151; /* gray-700 */
+    }
   }
 }
 
 @layer utilities {
-  .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+  /* Theme-aware brand utilities */
+  .bg-brand { background-color: var(--theme-primary); }
+  .bg-brand-light { background-color: var(--theme-primary-light); }
+  .text-brand { color: var(--theme-primary); }
+  .border-brand { border-color: var(--theme-primary); }
+  .ring-brand { --tw-ring-color: var(--theme-primary); }
+
+  .bg-secondary { background-color: var(--theme-secondary); }
+  .bg-secondary-light { background-color: var(--theme-secondary-light); }
+  .text-secondary { color: var(--theme-secondary); }
+  .border-secondary { border-color: var(--theme-secondary); }
+
+  /* Hover helpers */
+  .hover-border-brand:hover { border-color: var(--theme-primary); }
+  .hover-text-brand:hover { color: var(--theme-primary); }
+  .hover-bg-brand-light:hover { background-color: var(--theme-primary-light); }
+  .hover-text-secondary:hover { color: var(--theme-secondary); }
+  .hover-bg-secondary-light:hover { background-color: var(--theme-secondary-light); }
+
+  /* mOOtify Animation Utilities */
+  .animate-spring {
+    animation: spring 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   
-  .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700;
+  .animate-bounce-soft {
+    animation: bounce-soft 0.5s ease-in-out;
   }
   
-  .btn-secondary {
-    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  .animate-fade-in {
+    animation: fade-in 0.4s ease-out;
   }
   
-  .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+  .animate-scale-up {
+    animation: scale-up 0.3s ease-out;
+  }
+  
+  /* Interactive Elements */
+  .interactive {
+    @apply transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer;
+  }
+  
+  .interactive-soft {
+    @apply transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer;
+  }
+  
+  /* Gradient Backgrounds */
+  .bg-gradient-mint {
+    background-image: linear-gradient(to bottom right, var(--theme-primary-light), var(--theme-primary));
+  }
+  
+  .bg-gradient-purple {
+    background-image: linear-gradient(to bottom right, var(--theme-secondary-light), var(--theme-secondary));
+  }
+  
+  .bg-gradient-mootify {
+    background-image: linear-gradient(to bottom right, var(--theme-primary-light), var(--theme-secondary-light), var(--theme-secondary));
   }
 }
 

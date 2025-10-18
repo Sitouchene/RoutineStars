@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Utilise le proxy Vite en dev pour éviter le CORS, sinon VITE_API_URL
+const isDev = typeof window !== 'undefined' && window.location && !import.meta.env.PROD;
+const API_URL = isDev ? '/api' : (import.meta.env.VITE_API_URL || '/api');
 
 /**
  * Client API générique
@@ -35,10 +37,20 @@ class ApiClient {
         ok: response.ok
       });
       
-      const data = await response.json();
+      // Vérifier si la réponse a du contenu
+      const contentType = response.headers.get('content-type');
+      const hasJsonContent = contentType && contentType.includes('application/json');
+      
+      let data = null;
+      if (hasJsonContent) {
+        data = await response.json();
+      } else if (response.status === 204) {
+        // Pas de contenu pour les réponses 204
+        data = { message: 'Opération réussie' };
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Une erreur est survenue');
+        throw new Error(data?.error || 'Une erreur est survenue');
       }
 
       return data;
@@ -102,6 +114,8 @@ export const childrenApi = {
   updateAvatar: (id, avatar, headers) =>
     apiClient.put(`/children/${id}/avatar`, { avatar }, { headers }),
   delete: (id, headers) => apiClient.delete(`/children/${id}`, { headers }),
+  getDashboardStats: (childId, headers) =>
+    apiClient.get(`/children/${childId}/dashboard-stats`, { headers }),
 };
 
 export const tasksApi = {
@@ -228,6 +242,73 @@ export const categoriesApi = {
   
   // Activer/Désactiver une catégorie
   toggle: (id, isActive, headers) => apiClient.patch(`/categories/${id}/toggle`, { isActive }, { headers }),
+};
+
+// Livres
+export const booksApi = {
+  getAll: (headers, params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    const suffix = qs ? `?${qs}` : '';
+    return apiClient.get(`/books${suffix}`, { headers });
+  },
+  getById: (id, headers) => apiClient.get(`/books/${id}`, { headers }),
+  create: (data, headers) => apiClient.post('/books', data, { headers }),
+  update: (id, data, headers) => apiClient.put(`/books/${id}`, data, { headers }),
+  delete: (id, headers) => apiClient.delete(`/books/${id}`, { headers }),
+  searchGoogle: (query, langRestrict, headers) => {
+    const qs = new URLSearchParams({ q: query, langRestrict: langRestrict || 'fr' }).toString();
+    return apiClient.get(`/books/search/google?${qs}`, { headers });
+  },
+  importGoogle: (googleBookId, groupId, headers) => 
+    apiClient.post(`/books/import/google/${googleBookId}`, { groupId }, { headers }),
+};
+
+// Templates de livres
+export const bookTemplatesApi = {
+  getAll: (headers, filters = {}) => {
+    const qs = new URLSearchParams(filters).toString();
+    return apiClient.get(`/books/templates?${qs}`, { headers });
+  },
+  import: (templateId, headers) => 
+    apiClient.post(`/books/templates/${templateId}/import`, {}, { headers }),
+};
+
+// Lectures
+export const readingApi = {
+  assign: (data, headers) => apiClient.post('/reading/assign', data, { headers }),
+  getChildReadings: (childId, headers, params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    const suffix = qs ? `?${qs}` : '';
+    return apiClient.get(`/reading/child/${childId}${suffix}`, { headers });
+  },
+  updateProgress: (id, currentPage, headers) => 
+    apiClient.put(`/reading/${id}/progress`, { currentPage }, { headers }),
+  finish: (id, headers) => apiClient.put(`/reading/${id}/finish`, {}, { headers }),
+  getStats: (childId, headers) => apiClient.get(`/reading/child/${childId}/stats`, { headers }),
+  getById: (id, headers) => apiClient.get(`/reading/${id}`, { headers }),
+};
+
+// Avis et likes
+export const reviewsApi = {
+  create: (data, headers) => apiClient.post('/reading/reviews', data, { headers }),
+  update: (id, data, headers) => apiClient.put(`/reading/reviews/${id}`, data, { headers }),
+  delete: (id, headers) => apiClient.delete(`/reading/reviews/${id}`, { headers }),
+  getBookReviews: (bookId, headers, separate = false) => {
+    const qs = new URLSearchParams({ separate }).toString();
+    return apiClient.get(`/reading/books/${bookId}/reviews?${qs}`, { headers });
+  },
+  getBookReviewsWithStats: (bookId, headers) => apiClient.get(`/reading/books/${bookId}/reviews/stats`, { headers }),
+  toggleLike: (bookId, headers) => apiClient.post('/reading/likes', { bookId }, { headers }),
+};
+
+// Groupes (statistiques dashboard et notifications)
+export const groupsApi = {
+  getDashboardStats: (groupId, headers) =>
+    apiClient.get(`/groups/${groupId}/dashboard-stats`, { headers }),
+  getNotifications: (groupId, headers, limit = 10) => {
+    const qs = new URLSearchParams({ limit: limit.toString() }).toString();
+    return apiClient.get(`/groups/${groupId}/notifications?${qs}`, { headers });
+  },
 };
 
 

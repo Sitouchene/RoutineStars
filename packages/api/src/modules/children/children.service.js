@@ -95,11 +95,11 @@ export async function updateChild(childId, groupId, updates) {
 /**
  * Supprimer un enfant
  */
-export async function deleteChild(childId, familyId) {
+export async function deleteChild(childId, groupId) {
   const child = await prisma.user.findFirst({
     where: {
       id: childId,
-      familyId,
+      groupId,
       role: USER_ROLES.CHILD,
     },
   });
@@ -122,7 +122,7 @@ export async function updateChildAvatar(childId, familyId, avatar) {
   const child = await prisma.user.findFirst({
     where: {
       id: childId,
-      familyId,
+      groupId: familyId,
       role: USER_ROLES.CHILD,
     },
   });
@@ -147,4 +147,156 @@ export async function updateChildAvatar(childId, familyId, avatar) {
   return updatedChild;
 }
 
+/**
+ * Calculer la progression hebdomadaire de l'enfant
+ */
+async function calculateWeeklyProgress(childId) {
+  const today = new Date();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - 7);
 
+  const [thisWeek, total] = await Promise.all([
+    prisma.daySubmission.count({
+      where: { 
+        childId, 
+        validatedAt: { not: null },
+        submittedAt: { gte: weekStart }
+      }
+    }),
+    prisma.daySubmission.count({
+      where: { childId, validatedAt: { not: null } }
+    })
+  ]);
+
+  return {
+    percentage: total > 0 ? Math.round((thisWeek / total) * 100) : 0,
+    thisWeek,
+    total
+  };
+}
+
+/**
+ * Calculer la série de lecture (jours consécutifs)
+ */
+async function calculateReadingStreak(childId) {
+  const progressUpdates = await prisma.readingProgress.findMany({
+    where: { readingAssignment: { childId } },
+    orderBy: { updatedAt: 'desc' },
+    select: { updatedAt: true }
+  });
+
+  if (progressUpdates.length === 0) {
+    return { days: 0 };
+  }
+
+  let streak = 0;
+  let currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+
+  for (const update of progressUpdates) {
+    const updateDate = new Date(update.updatedAt);
+    updateDate.setHours(0, 0, 0, 0);
+    
+    const daysDiff = Math.floor((currentDate - updateDate) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff === streak) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else if (daysDiff > streak) {
+      break;
+    }
+  }
+
+  return { days: streak };
+}
+
+/**
+ * Calculer le prochain objectif de points
+ */
+function calculateNextGoal(currentPoints) {
+  const milestones = [50, 100, 200, 500, 1000, 2000, 5000];
+  const nextMilestone = milestones.find(m => m > currentPoints) || currentPoints + 500;
+  
+  return {
+    points: nextMilestone,
+    remaining: nextMilestone - currentPoints,
+    progress: currentPoints > 0 ? Math.round((currentPoints / nextMilestone) * 100) : 0
+  };
+}
+
+/**
+ * Récupérer les stats dashboard pour un enfant
+ */
+export async function getChildDashboardStats(childId) {
+  const [totalPoints, pagesRead, booksRead, weeklyProgress, streak] = await Promise.all([
+    // Points totaux depuis submissions validées (optimisé avec le champ totalPointsEarned)
+    prisma.user.findUnique({
+      where: { id: childId },
+      select: { totalPointsEarned: true }
+    }),
+    // Pages lues depuis ReadingProgress
+    prisma.readingProgress.aggregate({
+      where: { readingAssignment: { childId } },
+      _sum: { currentPage: true }
+    }),
+    // Livres terminés
+    prisma.readingAssignment.count({
+      where: { 
+        childId, 
+        progress: { isFinished: true }
+      }
+    }),
+    // Progression hebdomadaire
+    calculateWeeklyProgress(childId),
+    // Série de lecture
+    calculateReadingStreak(childId)
+  ]);
+
+  const points = totalPoints?.totalPointsEarned || 0;
+  
+  return {
+    totalPoints: points,
+    pagesRead: pagesRead._sum.currentPage || 0,
+    booksRead,
+    weeklyProgress: weeklyProgress.percentage,
+    weeklyTasks: weeklyProgress.thisWeek,
+    streak: streak.days,
+    nextGoal: calculateNextGoal(points)
+  };
+}
+
+/**
+ * Mettre à jour les points totaux d'un enfant (appelé lors de la validation d'une soumission)
+ */
+export async function updateChildPoints(childId, pointsToAdd) {
+  return await prisma.user.update({
+    where: { id: childId },
+    data: {
+      totalPointsEarned: {
+        increment: pointsToAdd
+      }
+    },
+    select: {
+      id: true,
+      name: true,
+      totalPointsEarned: true
+    }
+  });
+}
+
+/**
+ * Mettre à jour la dernière connexion d'un enfant
+ */
+export async function updateChildLastLogin(childId) {
+  return await prisma.user.update({
+    where: { id: childId },
+    data: {
+      lastLoginAt: new Date()
+    },
+    select: {
+      id: true,
+      name: true,
+      lastLoginAt: true
+    }
+  });
+}

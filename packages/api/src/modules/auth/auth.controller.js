@@ -15,7 +15,7 @@ const registerSchema = z.object({
   role: z.enum(['parent', 'teacher']),
   language: z.enum(['fr', 'en', 'ar']).optional().default('fr'),
   country: z.enum(['CA', 'DZ', 'FR', 'BE', 'CH']).optional().default('CA'),
-  grade: z.string().optional(),
+  grade: z.string().nullable().optional(),
 });
 
 const loginSchema = z.object({
