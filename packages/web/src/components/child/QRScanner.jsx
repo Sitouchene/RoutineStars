@@ -4,9 +4,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QrCode, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { useZxing } from 'react-zxing';
 
+// Hook pour détecter si c'est un mobile
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+  
+  return isMobile;
+};
+
 // Composant séparé pour le scanner de caméra avec useZxing
 const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   
   const { ref } = useZxing({
     onDecodeResult(result) {
@@ -19,7 +38,7 @@ const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
     },
     constraints: {
       video: {
-        facingMode: 'user' // Caméra frontale par défaut
+        facingMode: isMobile ? 'environment' : 'user' // Arrière sur mobile, frontale sur desktop
       }
     },
     timeBetweenDecodingAttempts: 300,
@@ -30,7 +49,7 @@ const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
       }
     },
     onStart: () => {
-      console.log('Scanner démarré');
+      console.log(`Scanner démarré avec caméra ${isMobile ? 'arrière' : 'frontale'}`);
       onLoadedData?.();
     }
   });
@@ -63,7 +82,14 @@ const CameraScanner = ({ isLoading, onLoadedData, onError, onScanSuccess }) => {
       </div>
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
         <div className="bg-black/50 text-white px-4 py-2 rounded-lg text-sm">
-          {isLoading ? 'Chargement...' : t('child.qr.scanning')}
+          {isLoading ? 'Chargement...' : (
+            <div className="text-center">
+              <div>{t('child.qr.scanning')}</div>
+              <div className="text-xs opacity-75 mt-1">
+                {isMobile ? '📱 Caméra arrière' : '💻 Caméra frontale'}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
