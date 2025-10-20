@@ -1,4 +1,4 @@
-# Configuration Déploiement Render.com
+# Configuration Déploiement Render.com - mOOtify (routinestars)
 
 ## Variables d'Environnement
 
@@ -24,12 +24,12 @@ JWT_SECRET=votre-cle-secrete-longue-et-aleatoire
 JWT_EXPIRES_IN=24h
 NODE_ENV=production
 PORT=3001
-CORS_ORIGIN=https://routinestars.vercel.app
+CORS_ORIGIN=https://mootify.vercel.app
 ```
 
 ## Build Command
 ```bash
-                pnpm install && pnpm run db:generate
+    pnpm install && pnpm run db:generate
 ```
 
 ## Start Command

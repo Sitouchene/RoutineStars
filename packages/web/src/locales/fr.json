@@ -143,6 +143,8 @@
   "common.logout": "Se déconnecter",
 
   "welcome.title": "Bienvenue ! Qui es-tu ?",
+  "welcome.getStarted": "Commencer avec mOOtify",
+  "welcome.getStartedDesc": "Découvrez comment mOOtify peut transformer les routines de vos enfants",
   "welcome.parent": "Parent",
   "welcome.parent.desc": "Je veux gérer les tâches de mes enfants",
   "welcome.teacher": "Enseignant",

@@ -10,6 +10,9 @@ import ChildLoginScreen from './pages/ChildLoginScreen';
 import ParentDashboard from './pages/parent/Dashboard';
 import ChildRouter from './pages/child/Router';
 
+// Pages de test
+import { OnboardingTestPage, TestsIndexPage, OnboardingTestPageV2 } from './pages/tests';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -35,6 +38,11 @@ function App() {
           
           {/* Authentification Enfant/Élève */}
           <Route path="/auth/child" element={<ChildLoginScreen />} />
+
+          {/* Pages de test */}
+        <Route path="/tests" element={<TestsIndexPage />} />
+        <Route path="/tests/onboarding" element={<OnboardingTestPage />} />
+        <Route path="/tests/onboarding-v2" element={<OnboardingTestPageV2 />} />
 
           {/* Routes protégées - Parent/Enseignant */}
           <Route

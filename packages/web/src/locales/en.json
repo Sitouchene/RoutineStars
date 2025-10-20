@@ -142,6 +142,8 @@
   "common.logout": "Logout",
   
   "welcome.title": "Welcome! Who are you?",
+  "welcome.getStarted": "Get Started with mOOtify",
+  "welcome.getStartedDesc": "Discover how mOOtify can transform your children's routines",
   "welcome.parent": "Parent",
   "welcome.parent.desc": "I want to manage my children's tasks",
   "welcome.teacher": "Teacher",

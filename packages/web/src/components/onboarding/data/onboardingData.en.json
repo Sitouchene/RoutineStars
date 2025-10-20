@@ -1,0 +1,329 @@
+{
+  "slides": [
+    {
+      "id": 0,
+      "title": "Join intuitively",
+      "subtitle": "Create your family space in a few clicks",
+      "icon": "🦉",
+      "content": "mOOtify organizes routines and develops your children's autonomy",
+      "type": "features",
+      "items": [
+        {
+          "icon": "📋",
+          "text": "Daily tasks"
+        },
+        {
+          "icon": "📚",
+          "text": "Reading with quizzes"
+        },
+        {
+          "icon": "🏆",
+          "text": "Badges and rewards"
+        }
+      ],
+      "screenshots": {
+        "mobile": [
+          {
+            "image": "/images/sc_01_01m.png",
+            "placeholder": "Mobile: mOOtify homepage with mOtivO",
+            "resolution": "375x812px"
+          },
+          {
+            "image": "/images/sc_01_02m.png",
+            "placeholder": "Mobile: Complete parent dashboard",
+            "resolution": "375x812px"
+          }
+        ],
+        "tablet": [
+          {
+            "image": "/images/sc_01_01t.png",
+            "placeholder": "Tablet: mOOtify homepage with mOtivO",
+            "resolution": "1024x768px"
+          },
+          {
+            "image": "/images/sc_01_02t.png",
+            "placeholder": "Tablet: Complete parent dashboard",
+            "resolution": "1024x768px"
+          }
+        ]
+      },
+      "cta": "Get Started",
+      "detailLink": "Learn more about mOOtify"
+    },
+    {
+      "id": 1,
+      "title": "Integrate automatically",
+      "subtitle": "Add your children and share the access code",
+      "icon": "👨‍👩‍👧‍👦",
+      "content": "Create your family space and generate access codes",
+      "type": "steps",
+      "items": [
+        {
+          "step": "1",
+          "text": "Parent/teacher account creation"
+        },
+        {
+          "step": "2",
+          "text": "Add children/students (name, age, avatar)"
+        },
+        {
+          "step": "3",
+          "text": "Automatic generation of unique group code"
+        },
+        {
+          "step": "4",
+          "text": "Share QR code or numeric code"
+        }
+      ],
+      "screenshots": {
+        "mobile": [
+          {
+            "image": "/images/sc_02_01m.png",
+            "placeholder": "Mobile: Add child interface",
+            "resolution": "375x812px"
+          },
+          {
+            "image": "/images/sc_02_02m.png",
+            "placeholder": "Mobile: QR code generation",
+            "resolution": "375x812px"
+          }
+        ],
+        "tablet": [
+          {
+            "image": "/images/sc_02_01m.png",
+            "placeholder": "Tablet: Add child interface",
+            "resolution": "1024x768px"
+          },
+          {
+            "image": "/images/sc_02_02m.png",
+            "placeholder": "Tablet: QR code generation",
+            "resolution": "1024x768px"
+          }
+        ]
+      },
+      "cta": "Add my first child",
+      "detailLink": "Complete guide: Adding children"
+    },
+    {
+      "id": 2,
+      "title": "Assign efficiently",
+      "subtitle": "Organize routines from our rich library",
+      "icon": "📅",
+      "content": "Import from our library or create your own tasks",
+      "type": "options",
+      "items": [
+        {
+          "icon": "📚",
+          "title": "Task library",
+          "description": "Import from our rich library"
+        },
+        {
+          "icon": "✏️",
+          "title": "Custom creation",
+          "description": "Create your own tasks"
+        },
+        {
+          "icon": "🗓️",
+          "title": "Flexible recurrence",
+          "description": "Daily, specific days, weekly"
+        }
+      ],
+      "screenshots": {
+        "mobile": [
+          {
+            "image": "/images/sc_03_01m.png",
+            "placeholder": "Mobile: Task selection interface",
+            "resolution": "375x812px"
+          },
+          {
+            "image": "/images/sc_03_02m.png",
+            "placeholder": "Mobile: Drag & drop a task",
+            "resolution": "375x812px"
+          },
+          {
+            "image": "/images/sc_03_03m.png",
+            "placeholder": "Mobile: Calendar with assignment",
+            "resolution": "375x812px"
+          }
+        ],
+        "tablet": [
+          {
+            "image": "/images/sc_03_01m.png",
+            "placeholder": "Tablet: Task selection interface",
+            "resolution": "1024x768px"
+          },
+          {
+            "image": "/images/sc_03_02m.png",
+            "placeholder": "Tablet: Drag & drop a task",
+            "resolution": "1024x768px"
+          },
+          {
+            "image": "/images/sc_03_03m.png",
+            "placeholder": "Tablet: Calendar with assignment",
+            "resolution": "1024x768px"
+          }
+        ]
+      },
+      "cta": "Create my first tasks",
+      "detailLink": "Complete task library"
+    },
+    {
+      "id": 3,
+      "title": "Empower positively",
+      "subtitle": "Children self-evaluate, you validate and motivate",
+      "icon": "🤝",
+      "content": "Develop autonomy with our mutual validation system",
+      "type": "process",
+      "items": [
+        {
+          "side": "child",
+          "title": "Child side",
+          "steps": [
+            "😊 Self-evaluation (0% - 25% - 50% - 75% - 100%)",
+            "🗓️ Submit daily tasks",
+            "📊 Progress statistics"
+          ]
+        },
+        {
+          "side": "parent",
+          "title": "Parent side",
+          "steps": [
+            "✅ Task validation",
+            "💝 Personalized encouragement messages",
+            "📈 Progress tracking"
+          ]
+        }
+      ],
+      "screenshots": {
+        "mobile": [
+          {
+            "image": "/images/sc_04_01m.png",
+            "placeholder": "Mobile: Child interface with self-evaluation",
+            "resolution": "375x812px"
+          },
+          {
+            "image": "/images/sc_04_02m.png",
+            "placeholder": "Mobile: Real-time parent validation",
+            "resolution": "375x812px"
+          }
+        ],
+        "tablet": [
+          {
+            "image": "/images/sc_04_01t.png",
+            "placeholder": "Tablet: Child interface with self-evaluation",
+            "resolution": "1024x768px"
+          },
+          {
+            "image": "/images/sc_04_02t.png",
+            "placeholder": "Tablet: Real-time parent validation",
+            "resolution": "1024x768px"
+          }
+        ]
+      },
+      "cta": "Start self-evaluation",
+      "detailLink": "Guide: Validation system"
+    },
+    {
+      "id": 4,
+      "title": "Read intelligently",
+      "subtitle": "Adapted library with comprehension quizzes",
+      "icon": "📖",
+      "content": "Develop reading taste with our interactive library",
+      "type": "features",
+      "items": [
+        {
+          "icon": "📚",
+          "text": "Library adapted by age and culture"
+        },
+        {
+          "icon": "🧠",
+          "text": "Automatic comprehension quizzes"
+        },
+        {
+          "icon": "📊",
+          "text": "Progress tracking"
+        },
+        {
+          "icon": "🔄",
+          "text": "Flexible reading assignments"
+        }
+      ],
+      "screenshots": {
+        "mobile": [
+          {
+            "image": "/images/sc_05_01m.png",
+            "placeholder": "Mobile: Reading interface with quiz",
+            "resolution": "375x812px"
+          },
+          {
+            "image": "/images/sc_05_02m.png",
+            "placeholder": "Mobile: Interactive comprehension quiz",
+            "resolution": "375x812px"
+          }
+        ],
+        "tablet": [
+          {
+            "image": "/images/sc_05_01t.png",
+            "placeholder": "Tablet: Reading interface with quiz",
+            "resolution": "1024x768px"
+          },
+          {
+            "image": "/images/sc_05_02t.png",
+            "placeholder": "Tablet: Interactive comprehension quiz",
+            "resolution": "1024x768px"
+          }
+        ]
+      },
+      "cta": "Explore the library",
+      "detailLink": "Complete book catalog"
+    },
+    {
+      "id": 5,
+      "title": "Reward generously",
+      "subtitle": "Motivating badge and reward system",
+      "icon": "🎁",
+      "content": "Celebrate every success with our reward system",
+      "type": "rewards",
+      "items": [
+        {
+          "icon": "🏆",
+          "title": "Achievement badges",
+          "description": "Celebrate accomplishments"
+        },
+        {
+          "icon": "⭐",
+          "title": "Points system",
+          "description": "And progressive levels"
+        }
+      ],
+      "screenshots": {
+        "mobile": [
+          {
+            "image": "/images/sc_06_01m.png",
+            "placeholder": "Mobile: Rewards interface",
+            "resolution": "375x812px"
+          },
+          {
+            "image": "/images/sc_06_02m.png",
+            "placeholder": "Mobile: Badge attribution",
+            "resolution": "375x812px"
+          }
+        ],
+        "tablet": [
+          {
+            "image": "/images/sc_06_01t.png",
+            "placeholder": "Tablet: Rewards interface",
+            "resolution": "1024x768px"
+          },
+          {
+            "image": "/images/sc_06_02t.png",
+            "placeholder": "Tablet: Badge attribution",
+            "resolution": "1024x768px"
+          }
+        ]
+      },
+      "cta": "Start earning",
+      "detailLink": "Complete reward system"
+    }
+  ]
+}

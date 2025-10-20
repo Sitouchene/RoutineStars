@@ -1,14 +1,17 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Users, GraduationCap, Baby } from 'lucide-react';
+import { Users, GraduationCap, Baby, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import LanguageSelector from '../components/LanguageSelector';
 import Logo from '../components/branding/Logo';
 import OwlMascot from '../components/branding/OwlMascot';
+import { OnboardingCarouselV2 } from '../components/onboarding';
 
 export default function WelcomeScreen() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleRoleSelect = (role) => {
     if (role === 'parent' || role === 'teacher') {
@@ -49,6 +52,27 @@ export default function WelcomeScreen() {
           
           {/* Logo mOOtify */}
           <Logo size="xl" variant="full" animated={true} />
+        </motion.div>
+
+        {/* Bouton CTA Get Started */}
+        <motion.div 
+          className="text-center mb-8 md:mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <motion.button
+            onClick={() => setShowOnboarding(true)}
+            className="bg-gradient-to-r from-mint-400 to-purple-400 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-3 mx-auto"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Play className="w-6 h-6" />
+            <span>{t('welcome.getStarted', 'Commencer avec mOOtify')}</span>
+          </motion.button>
+          <p className="text-gray-600 text-sm mt-3">
+            {t('welcome.getStartedDesc', 'Découvrez comment mOOtify peut transformer les routines de vos enfants')}
+          </p>
         </motion.div>
 
         {/* Choix du rôle */}
@@ -121,6 +145,12 @@ export default function WelcomeScreen() {
             </div>
           </motion.button>
         </motion.div>
+
+        {/* Onboarding Carousel V2 */}
+        <OnboardingCarouselV2 
+          isOpen={showOnboarding} 
+          onClose={() => setShowOnboarding(false)} 
+        />
       </div>
     </div>
   );

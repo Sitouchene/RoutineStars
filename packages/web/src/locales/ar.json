@@ -141,6 +141,8 @@
   "common.logout": "الخروج",
   
   "welcome.title": "مرحبا! من أنت؟",
+  "welcome.getStarted": "ابدأ مع mOOtify",
+  "welcome.getStartedDesc": "اكتشف كيف يمكن لـ mOOtify أن يحول روتين أطفالك",
   "welcome.parent": "ولي أمر",
   "welcome.parent.desc": "أريد إدارة مهام أطفالي",
   "welcome.teacher": "معلم",

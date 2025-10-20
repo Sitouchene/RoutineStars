@@ -1,16 +1,23 @@
-# ⭐ RoutineStars
+# 🦉 mOOtify
+
+**Chaque effort compte** ✨
 
 Application complète de gestion de routines et tâches pour enfants avec système de récompenses, badges, lectures et quiz interactifs.
 
+> *Avec mOtivO, notre mascotte chouette qui encourage chaque enfant dans ses efforts quotidiens*
+
+> **Note** : mOOtify est le nom commercial de l'application. Le nom de code technique reste `routinestars` pour le développement.
+
 ## 🎯 Concept
 
-RoutineStars aide les enfants à :
+mOOtify aide les enfants à :
 - ✅ Adopter une routine saine quotidienne
 - 🏠 Participer aux tâches ménagères
 - 📚 Développer leur autonomie dans les études
 - 🎖️ S'autoévaluer et être récompensés
 - 📖 Progresser dans leurs lectures avec quiz interactifs
 - 🏆 Collectionner des badges et échanger des récompenses
+- 🦉 Être encouragés par mOtivO, leur mascotte chouette
 
 Les parents peuvent :
 - 👨‍👩‍👧 Créer et gérer plusieurs profils enfants
@@ -53,8 +60,9 @@ routinestars/
 - React Query (cache & API)
 - React Router
 - Framer Motion (animations)
-- i18next (internationalisation)
+- i18next (internationalisation multiculturelle)
 - PWA avec service worker
+- Système de thèmes (Principal, Aventurier, Créatif)
 
 **Shared**
 - Zod (validation)
@@ -214,9 +222,14 @@ pnpm db:push
 
 1. Retour à la page de login
 2. "Mode Enfant/Élève"
-3. Entrer le code de groupe
-4. Sélectionner le profil
-5. Entrer le code PIN
+3. **Option A : Code de groupe**
+   - Entrer le code de groupe (ex: ABC123)
+   - Sélectionner le profil
+   - Entrer le code PIN
+4. **Option B : QR Code**
+   - Scanner le QR code du groupe avec la caméra
+   - Sélectionner le profil
+   - Entrer le code PIN
 
 ## 🔐 Authentification
 
@@ -227,7 +240,8 @@ pnpm db:push
 - Gestion du groupe (famille/classe)
 
 ### Enfant/Élève
-- Code de groupe + code PIN 4 chiffres
+- **Code de groupe** + code PIN 4 chiffres
+- **QR Code** : Scan du QR code du groupe (alternative au code manuel)
 - Token JWT avec permissions limitées
 - Accès uniquement à son espace personnel
 - Interface adaptée aux enfants
@@ -339,6 +353,44 @@ pnpm start:web        # Preview du build web
    ```
 3. Configurer `VITE_API_URL` avec l'URL Railway
 
+## 🌍 Internationalisation et Multiculturalisme
+
+### Langues Supportées
+- **Français** : Langue principale
+- **Anglais** : Version complète
+- **Arabe** : Interface traduite
+
+### Cultures Adaptées
+- **🇩🇿 Algérie** : Calendrier scolaire, jours fériés, références culturelles
+- **🇨🇦 Canada (FR)** : Système scolaire québécois, vacances canadiennes
+- **🇨🇦 Canada (EN)** : Système scolaire anglophone, références culturelles
+- **🇫🇷 France** : Calendrier scolaire français, jours fériés nationaux
+
+### Contenu Localisé
+- **Livres** : Sélection adaptée à chaque culture
+- **Tâches** : Exemples et références culturelles
+- **Calendriers** : Vacances scolaires et jours fériés
+- **Messages** : Encouragements adaptés culturellement
+
+## 🎨 Système de Thèmes
+
+### Thème Principal
+- **Couleurs** : Vert menthe (#58D6A8) et violet (#B69CF4)
+- **Style** : Moderne et bienveillant
+- **Usage** : Interface par défaut
+
+### Thème Aventurier
+- **Couleurs** : Bleu ciel (#38bdf8) et turquoise (#14b8a6)
+- **Style** : Dynamique et explorateur
+- **Usage** : Pour les enfants aventuriers
+- **Personnalité** : Énergique, curieux, explorateur
+
+### Thème Créatif
+- **Couleurs** : Rose (#fb7185) et rose clair (#f9a8d4)
+- **Style** : Artistique et imaginatif
+- **Usage** : Pour les enfants créatifs
+- **Personnalité** : Inspirant, coloré, expressif
+
 ## 🔮 Fonctionnalités actuelles
 
 ### ✅ Implémentées
@@ -354,9 +406,15 @@ pnpm start:web        # Preview du build web
 - **Statistiques** : Dashboard, graphiques, historique
 - **Messages quotidiens** : Communication parent-enfant
 - **Interface multilingue** : Français, Anglais, Arabe
+- **Multiculturel** : Adaptation pour 4 cultures (Algérie, Canada FR/EN, France)
+- **Contenu localisé** : Livres, tâches, calendriers scolaires et jours fériés adaptés
 - **PWA** : Installation mobile, mode hors ligne
 - **Responsive** : Mobile-first, tablette, desktop
-
+- **QR Code** : Authentification enfant par scan de QR code
+- **mOtivO** : Mascotte chouette interactive avec animations de clignement
+- **Design mOOtify** : Identité visuelle distinctive avec les yeux de chouette dans le logo
+- **Thèmes** : 3 thèmes disponibles (Principal, Aventurier, Créatif)
+   
 ### 🚧 En développement
 
 - [ ] Notifications push
@@ -375,6 +433,8 @@ MIT
 
 ---
 
-**Développé avec ❤️ pour aider les familles à mieux s'organiser**
+**Développé avec ❤️ par l'équipe mOOtify pour aider les familles et enseignants à mieux s'organiser**
+
+*Chaque effort compte* ✨
 
 

@@ -1,6 +1,8 @@
-# 🚀 Guide de démarrage rapide - RoutineStars
+# 🚀 Guide de démarrage rapide - mOOtify (routinestars)
 
-Ce guide vous aidera à lancer RoutineStars en moins de 10 minutes.
+Ce guide vous aidera à lancer mOOtify en moins de 10 minutes.
+
+> *Chaque effort compte* ✨
 
 ## ⚡ Installation rapide
 
