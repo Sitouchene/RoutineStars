@@ -7,6 +7,9 @@ const router = express.Router();
 router.get('/search/google', booksController.searchGoogleBooksHandler);
 router.post('/import/google/:googleBookId', booksController.importGoogleBookHandler);
 
+// Templates route
+router.get('/templates', booksController.getBookTemplatesHandler);
+
 // CRUD Routes
 router.get('/', booksController.getBooksHandler);
 router.get('/:id', booksController.getBookByIdHandler);

@@ -29,7 +29,7 @@ CORS_ORIGIN=https://routinestars.vercel.app
 
 ## Build Command
 ```bash
-pnpm install && pnpm run db:generate
+                pnpm install && pnpm run db:generate
 ```
 
 ## Start Command

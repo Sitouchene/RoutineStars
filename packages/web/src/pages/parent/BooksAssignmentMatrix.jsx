@@ -65,19 +65,6 @@ export default function BooksAssignmentMatrix() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center">
-            <BookOpen className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-display font-bold text-gray-900">{t('books.matrixTitle', 'Matrice des lectures')}</h1>
-            <p className="text-gray-600 text-sm">{t('books.matrixSubtitle', 'Affectez des lectures par enfant')}</p>
-          </div>
-        </div>
-      </div>
-
       {/* Tableau croisé */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-auto max-h-[70vh]">

@@ -1,0 +1,2 @@
+curl -X POST http://localhost:3001/api/books/import/google/7k48EAAAQBAJ -H "Content-Type: application/json" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE0YjRjYzkzLTQxY2MtNGFjZi1iMjBiLTRhMTY3OTIwYjc2MyIsInJvbGUiOiJwYXJlbnQiLCJncm91cElkIjoiMzNhZTM0M2MtYTBhZS00NmI3LWJmNDktYTI5YzlmNTdjYjkyIiwiaWF0IjoxNzYwOTI1NjY4LCJleHAiOjE3NjA5MjkyNjh9.ffOGvzI_NLD1s_zRYDR4M_Feb9ApDV58jEJ-vJaGTfg" -d "{\"groupId\":\"33ae343c-a0ae-46b7-bf49-a29c9f57cb92\"}"
+

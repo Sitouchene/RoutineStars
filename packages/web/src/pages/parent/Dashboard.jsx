@@ -2,21 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/authStore';
-import { Home, Users, ListTodo, BarChart3, LogOut, Calendar, CheckCircle, Settings, Grid3X3, PanelRightOpen, PanelRightClose, Tag, BookOpen, QrCode, Bell } from 'lucide-react';
+import { Home, Users, ListTodo, BarChart3, LogOut, Calendar, CheckCircle, Settings, Grid3X3, PanelRightOpen, PanelRightClose, Tag, BookOpen, QrCode, Bell, Trophy, Gift } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import ChildrenPage from './ChildrenPage';
-import TasksPage from './TasksPage';
-import AssignmentsPage from './AssignmentsPage';
-import AssignmentMatrix from './AssignmentMatrix';
+import GroupManagementPage from './GroupManagementPage';
+import TasksUnifiedPage from './TasksUnifiedPage';
 import SubmissionsPage from './SubmissionsPage';
 import StatsPage from './StatsPage';
-import MessagesRulesPage from './MessagesRules';
-import CategoriesPage from './CategoriesPage';
 import SettingsPage from './SettingsPage';
-import BooksPage from './BooksPage';
-import ReadingAssignmentsPage from './ReadingAssignmentsPage';
-import BooksAssignmentMatrix from './BooksAssignmentMatrix';
+import BooksUnifiedPage from './BooksUnifiedPage';
+import BadgesManagementPage from './BadgesManagementPage';
+import RewardsManagementPage from './RewardsManagementPage';
 import PendingSubmissionsWidget from '../../components/parent/PendingSubmissionsWidget';
 import LanguageSelector from '../../components/LanguageSelector';
 import Logo from '../../components/branding/Logo';
@@ -231,20 +227,17 @@ export default function ParentDashboard() {
     }
   };
 
-  const navItems = [
-    { path: '/parent/home', icon: Home, label: t('dashboard.home') },
-    { path: '/parent/children', icon: Users, label: t('dashboard.children') },
-    { path: '/parent/categories', icon: Tag, label: t('dashboard.categories') },
-    { path: '/parent/tasks', icon: ListTodo, label: t('dashboard.tasks') },
-    { path: '/parent/assignments', icon: Calendar, label: t('dashboard.assignments') },
-    { path: '/parent/assignment-matrix', icon: Grid3X3, label: t('dashboard.matrix') },
-    { path: '/parent/submissions', icon: CheckCircle, label: t('dashboard.submissions') },
-    { path: '/parent/books', icon: BookOpen, label: t('books.title', 'Livres') },
-    { path: '/parent/reading-assignments', icon: BookOpen, label: t('books.assignments', 'Lectures assignées') },
-    { path: '/parent/books-assignment-matrix', icon: Grid3X3, label: t('books.matrixNav', 'Matrice lectures') },
-    { path: '/parent/stats', icon: BarChart3, label: t('dashboard.stats') },
-    { path: '/parent/settings', icon: Settings, label: t('settings.title', 'Paramètres') },
-  ];
+      const navItems = [
+        { path: '/parent/home', icon: Home, label: t('dashboard.home') },
+        { path: '/parent/group-management', icon: Users, label: t('dashboard.groupManagement', 'Gestion du Groupe') },
+        { path: '/parent/tasks-management', icon: ListTodo, label: t('dashboard.tasksManagement', 'Gestion Tâches') },
+        { path: '/parent/submissions', icon: CheckCircle, label: t('dashboard.submissions') },
+        { path: '/parent/books-management', icon: BookOpen, label: t('books.management', 'Gestion Livres') },
+        { path: '/parent/badges-management', icon: Trophy, label: t('parent.badges.management', 'Badges') },
+        { path: '/parent/rewards-management', icon: Gift, label: t('parent.rewards.management', 'Récompenses') },
+        { path: '/parent/stats', icon: BarChart3, label: t('dashboard.stats') },
+        { path: '/parent/settings', icon: Settings, label: t('settings.title', 'Paramètres') },
+      ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -322,22 +315,18 @@ export default function ParentDashboard() {
       <main className={`transition-all duration-300 p-4 md:p-6 lg:p-8 ${
         isMobile ? 'pt-16' : 'ml-64'
       }`}>
-          <Routes>
-            <Route index element={<Navigate to="/parent/home" replace />} />
-            <Route path="home" element={<DashboardHome />} />
-            <Route path="children" element={<ChildrenPage />} />
-            <Route path="categories" element={<CategoriesPage />} />
-            <Route path="tasks" element={<TasksPage />} />
-            <Route path="assignments" element={<AssignmentsPage />} />
-            <Route path="assignment-matrix" element={<AssignmentMatrix />} />
-            <Route path="submissions" element={<SubmissionsPage />} />
-            <Route path="books" element={<BooksPage />} />
-            <Route path="reading-assignments" element={<ReadingAssignmentsPage />} />
-            <Route path="books-assignment-matrix" element={<BooksAssignmentMatrix />} />
-            <Route path="stats" element={<StatsPage />} />
-            <Route path="messages-rules" element={<MessagesRulesPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Routes>
+              <Routes>
+                <Route index element={<Navigate to="/parent/home" replace />} />
+                <Route path="home" element={<DashboardHome />} />
+                <Route path="group-management" element={<GroupManagementPage />} />
+                <Route path="tasks-management" element={<TasksUnifiedPage />} />
+                <Route path="submissions" element={<SubmissionsPage />} />
+                <Route path="books-management" element={<BooksUnifiedPage />} />
+                <Route path="badges-management" element={<BadgesManagementPage />} />
+                <Route path="rewards-management" element={<RewardsManagementPage />} />
+                <Route path="stats" element={<StatsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Routes>
         </main>
     </div>
   );

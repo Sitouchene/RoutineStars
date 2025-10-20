@@ -24,6 +24,8 @@ model Group {
   dailyMessages     DailyMessage[]
   evaluationWindows EvaluationWindow[]
   taskTemplates     TaskTemplate[]
+  groupBadges       GroupBadge[]
+  groupRewards      GroupReward[]
 
   @@map("groups")
 }
@@ -69,9 +71,12 @@ model User {
   evaluationWindows  EvaluationWindow[]
   assignedReadings   ReadingAssignment[] @relation("ReadingAssigner")
   readingAssignments ReadingAssignment[] @relation("ReadingChild")
-  rewards            Reward[]
   assignments        TaskAssignment[]
   tasks              Task[]
+  userBadges         UserBadge[]
+  rewardRedemptions  RewardRedemption[]
+  pointTransactions  PointTransaction[]
+  quizAttempts       QuizAttempt[]
 
   @@index([groupId, role], map: "idx_users_groupId_role")
   @@index([groupId, lastLoginAt], map: "idx_users_groupId_lastLoginAt")
@@ -195,17 +200,6 @@ model DaySubmission {
   @@map("day_submissions")
 }
 
-model Reward {
-  id        String   @id @default(uuid())
-  userId    String
-  badgeType String
-  earnedAt  DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId], map: "idx_rewards_userId")
-  @@index([userId, earnedAt], map: "idx_rewards_userId_earnedAt")
-  @@map("rewards")
-}
 
 model Book {
   id                 String              @id @default(uuid())
@@ -224,6 +218,7 @@ model Book {
   reviews            BookReview[]
   group              Group?              @relation(fields: [groupId], references: [id], onDelete: Cascade)
   readingAssignments ReadingAssignment[]
+  quizzes            ReadingQuiz[]
 
   @@map("books")
 }
@@ -307,6 +302,186 @@ model BookTemplate {
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   @@map("book_templates")
+}
+
+// ===== SYSTÈME AWARDS/BADGES =====
+
+model GlobalBadge {
+  id             String   @id @default(cuid())
+  name           String   @unique
+  description    String
+  icon           String
+  category       String
+  rarity         String
+  pointsRequired Int
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  groupBadges    GroupBadge[]
+  @@index([category])
+  @@index([rarity])
+  @@map("global_badges")
+}
+
+model GroupBadge {
+  id             String   @id @default(cuid())
+  groupId        String
+  globalBadgeId  String?
+  name           String
+  description    String
+  icon           String
+  category       String
+  rarity         String
+  pointsRequired Int
+  isActive       Boolean  @default(true)
+  isEnabled      Boolean  @default(true)
+  unlockType     String   @default("automatic")
+  autoCriteria   Json?
+  isSpecial      Boolean  @default(false)
+  specialReason  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  group          Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  globalBadge    GlobalBadge? @relation(fields: [globalBadgeId], references: [id])
+  userBadges     UserBadge[]
+  @@unique([groupId, name])
+  @@index([groupId])
+  @@map("group_badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+  isVisible Boolean  @default(true)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     GroupBadge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@map("user_badges")
+}
+
+model GlobalReward {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  icon        String
+  category    String
+  cost        Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  groupRewards GroupReward[]
+  @@index([category])
+  @@index([cost])
+  @@map("global_rewards")
+}
+
+model GroupReward {
+  id          String   @id @default(cuid())
+  groupId     String
+  globalRewardId String?
+  name        String
+  description String
+  icon        String
+  category    String
+  cost        Int
+  isActive    Boolean  @default(true)
+  isEnabled   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  globalReward GlobalReward? @relation(fields: [globalRewardId], references: [id])
+  redemptions RewardRedemption[]
+  @@unique([groupId, name])
+  @@index([groupId])
+  @@map("group_rewards")
+}
+
+model RewardRedemption {
+  id          String   @id @default(cuid())
+  userId      String
+  rewardId    String
+  redeemedAt  DateTime @default(now())
+  status      String
+  parentComment String?
+  childComment String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward      GroupReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([userId, redeemedAt])
+  @@index([status])
+  @@map("reward_redemptions")
+}
+
+model PointTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Int
+  type        String
+  description String
+  source      String?
+  sourceId    String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@index([type])
+  @@map("point_transactions")
+}
+
+// ===== SYSTÈME QUIZ DE LECTURE =====
+
+model ReadingQuiz {
+  id          String   @id @default(cuid())
+  bookId      String
+  title       String
+  description String
+  triggerPage Int
+  maxAttempts Int      @default(3)
+  timeLimit   Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  book        Book     @relation(fields: [bookId], references: [id])
+  questions   QuizQuestion[]
+  attempts    QuizAttempt[]
+  @@index([bookId, triggerPage])
+  @@map("reading_quizzes")
+}
+
+model QuizQuestion {
+  id            String   @id @default(cuid())
+  quizId        String
+  order         Int
+  type          String
+  category      String
+  question      String
+  options       Json
+  correctAnswer String
+  explanation   String?
+  points        Int      @default(1)
+  quiz          ReadingQuiz @relation(fields: [quizId], references: [id])
+  @@index([quizId, order])
+  @@map("quiz_questions")
+}
+
+model QuizAttempt {
+  id           String   @id @default(cuid())
+  quizId       String
+  userId       String
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+  score        Int      @default(0)
+  maxScore     Int      @default(7)
+  isPassed     Boolean  @default(false)
+  pointsEarned Int      @default(0)
+  timeSpent    Int?
+  quiz         ReadingQuiz @relation(fields: [quizId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
+  @@index([userId, quizId])
+  @@map("quiz_attempts")
 }

@@ -86,6 +86,21 @@ export async function deleteBookHandler(req, res) {
 }
 
 /**
+ * GET /api/books/templates
+ * Récupérer les templates de livres
+ */
+export async function getBookTemplatesHandler(req, res) {
+  try {
+    const { language } = req.query;
+    const templates = await booksService.getBookTemplates(language);
+    res.json(templates);
+  } catch (error) {
+    console.error('Error fetching book templates:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
  * GET /api/books/search/google
  * Rechercher sur Google Books
  */

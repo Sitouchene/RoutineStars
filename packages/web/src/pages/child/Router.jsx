@@ -7,6 +7,7 @@ import HomePage from './HomePage';
 import BottomNav from '../../components/child/BottomNav';
 import SidebarChild from '../../components/child/SidebarChild';
 import ReadsPage from './ReadsPage';
+import AwardsPage from './AwardsPage';
 
 function ChildLayout() {
   return (
@@ -29,6 +30,7 @@ export default function ChildRouter() {
         <Route path="/stats" element={<ChildStatsPage />} />
         <Route path="/reads" element={<ReadsPage />} />
         <Route path="/agenda" element={<AgendaPage />} />
+        <Route path="/awards" element={<AwardsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/child" replace />} />

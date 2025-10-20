@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Star, StarOff, Bookmark, User, UserPlus, CheckCircle, BookOpen as BookOpenIcon } from 'lucide-react';
 import ChildHeader from '../../components/child/ChildHeader';
 import ReadingProgressBar from '../../components/child/ReadingProgressBar';
-import { readingApi, reviewsApi } from '../../lib/api-client';
+import QuizModal from '../../components/quiz/QuizModal';
+import { readingApi, reviewsApi, quizApi } from '../../lib/api-client';
 import { useAuthStore } from '../../stores/authStore';
+import { useConfirm } from '../../components/ui/ConfirmModal';
 
 function Rating({ value, onChange }) {
   const stars = [1, 2, 3, 4, 5];
@@ -30,6 +32,11 @@ export default function ReadsPage() {
   const { t } = useTranslation();
   const { user, getAuthHeader } = useAuthStore();
   const queryClient = useQueryClient();
+  const { confirm, ConfirmModalComponent } = useConfirm();
+  
+  // État pour le quiz
+  const [currentQuiz, setCurrentQuiz] = useState(null);
+  const [showQuizModal, setShowQuizModal] = useState(false);
 
   // Charger les lectures de l'enfant
   const { data: readings = [], isLoading } = useQuery({
@@ -40,22 +47,62 @@ export default function ReadsPage() {
 
   // Mutation pour mettre à jour la progression
   const updateProgressMutation = useMutation({
-    mutationFn: ({ assignmentId, currentPage }) => 
-      readingApi.updateProgress(assignmentId, currentPage, getAuthHeader()),
+    mutationFn: async ({ assignmentId, currentPage }) => {
+      const result = await readingApi.updateProgress(assignmentId, currentPage, getAuthHeader());
+      
+      // Vérifier s'il y a un quiz à déclencher
+      try {
+        const quiz = await quizApi.getTriggeredQuiz(result.book.id, currentPage, getAuthHeader());
+        if (quiz) {
+          // Vérifier si l'utilisateur a déjà tenté ce quiz
+          const attempts = await quizApi.getUserAttempts(user.id, quiz.id, getAuthHeader());
+          const hasAttempted = attempts.some(attempt => attempt.quizId === quiz.id);
+          
+          if (!hasAttempted) {
+            setCurrentQuiz(quiz);
+            setShowQuizModal(true);
+          }
+        }
+      } catch (error) {
+        console.log('Aucun quiz trouvé pour cette page ou erreur:', error.message);
+      }
+      
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['childReadings'] });
       queryClient.invalidateQueries({ queryKey: ['readingStats'] });
     },
   });
 
-  // Mutation pour terminer un livre
-  const finishBookMutation = useMutation({
-    mutationFn: (assignmentId) => readingApi.finish(assignmentId, getAuthHeader()),
+  // Mutation pour soumettre un quiz
+  const submitQuizMutation = useMutation({
+    mutationFn: ({ quizId, score, timeSpent }) => 
+      quizApi.submitAttempt(quizId, score, timeSpent, getAuthHeader()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['childReadings'] });
       queryClient.invalidateQueries({ queryKey: ['readingStats'] });
+      queryClient.invalidateQueries({ queryKey: ['childDashboard'] });
     },
   });
+
+  // Handlers pour le quiz
+  const handleQuizSubmit = (score, timeSpent) => {
+    if (currentQuiz) {
+      submitQuizMutation.mutate({
+        quizId: currentQuiz.id,
+        score,
+        timeSpent
+      });
+    }
+    setShowQuizModal(false);
+    setCurrentQuiz(null);
+  };
+
+  const handleQuizClose = () => {
+    setShowQuizModal(false);
+    setCurrentQuiz(null);
+  };
 
   // Mutation pour créer/mettre à jour un avis
   const reviewMutation = useMutation({
@@ -74,8 +121,16 @@ export default function ReadsPage() {
     updateProgressMutation.mutate({ assignmentId, currentPage });
   };
 
-  const handleFinishBook = (assignmentId) => {
-    if (confirm(t('child.reads.confirmFinish', 'Es-tu sûr d\'avoir terminé ce livre ?'))) {
+  const handleFinishBook = async (assignmentId) => {
+    const confirmed = await confirm({
+      title: t('child.reads.confirmFinish'),
+      message: t('child.reads.confirmFinish', 'Es-tu sûr d\'avoir terminé ce livre ?'),
+      type: 'warning',
+      confirmText: t('child.reads.markFinished'),
+      cancelText: t('common.cancel')
+    });
+    
+    if (confirmed) {
       finishBookMutation.mutate(assignmentId);
     }
   };
@@ -204,6 +259,18 @@ export default function ReadsPage() {
         })}
         </div>
       </div>
+      
+      {/* Confirm Modal */}
+      <ConfirmModalComponent />
+      
+      {/* Quiz Modal */}
+      {showQuizModal && currentQuiz && (
+        <QuizModal
+          quiz={currentQuiz}
+          onClose={handleQuizClose}
+          onSubmit={handleQuizSubmit}
+        />
+      )}
     </div>
   );
 }

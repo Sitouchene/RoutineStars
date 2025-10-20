@@ -1,4 +1,6 @@
 import prisma from '../../config/database.js';
+import { updateChildPoints } from '../children/children.service.js';
+import { checkAndUnlockBadges } from '../awards/badges.service.js';
 
 /**
  * Soumettre la journée d'un enfant
@@ -47,11 +49,19 @@ export async function submitDay(childId, date) {
     throw new Error('Cette journée a déjà été soumise');
   }
 
-  // Créer la soumission
+  // Calculer les points gagnés pour cette journée
+  const dayPoints = tasks.reduce((total, task) => {
+    const basePoints = task.taskTemplate?.points || 10; // Points de base de la tâche
+    const scoreMultiplier = (task.selfScore || 0) / 5; // Multiplicateur basé sur l'autoévaluation (0-1)
+    return total + Math.round(basePoints * scoreMultiplier);
+  }, 0);
+
+  // Créer la soumission avec les points
   const submission = await prisma.daySubmission.create({
     data: {
       childId,
       date: targetDate,
+      pointsEarned: dayPoints,
     },
     include: {
       child: {
@@ -78,6 +88,19 @@ export async function submitDay(childId, date) {
       lockedAt: new Date(),
     },
   });
+
+  // Mettre à jour les points totaux de l'enfant
+  if (dayPoints > 0) {
+    await updateChildPoints(childId, dayPoints);
+    
+    // Vérifier et débloquer automatiquement les badges
+    try {
+      await checkAndUnlockBadges(childId);
+    } catch (error) {
+      console.error('Erreur lors de la vérification des badges:', error);
+      // Ne pas faire échouer la soumission si la vérification des badges échoue
+    }
+  }
 
   return submission;
 }

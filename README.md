@@ -1,6 +1,6 @@
 # ⭐ RoutineStars
 
-Application de gestion de routines et tâches pour enfants avec système de récompenses et d'autoévaluation.
+Application complète de gestion de routines et tâches pour enfants avec système de récompenses, badges, lectures et quiz interactifs.
 
 ## 🎯 Concept
 
@@ -9,12 +9,17 @@ RoutineStars aide les enfants à :
 - 🏠 Participer aux tâches ménagères
 - 📚 Développer leur autonomie dans les études
 - 🎖️ S'autoévaluer et être récompensés
+- 📖 Progresser dans leurs lectures avec quiz interactifs
+- 🏆 Collectionner des badges et échanger des récompenses
 
 Les parents peuvent :
 - 👨‍👩‍👧 Créer et gérer plusieurs profils enfants
 - 📋 Définir des tâches récurrentes par catégorie
 - ✓ Valider et encourager les efforts
 - 📊 Suivre les progrès et statistiques
+- 📚 Gérer une bibliothèque de livres et assigner des lectures
+- 🎁 Créer des badges personnalisés et des récompenses
+- 🏫 Utiliser le système en famille ou en classe
 
 ## 🏗️ Architecture
 
@@ -37,19 +42,25 @@ routinestars/
 - PostgreSQL (Supabase)
 - JWT Authentication
 - JavaScript (ES Modules)
+- Système de groupes (familles/classes)
+- API REST complète avec 20+ modules
 
 **Frontend (Web PWA)**
 - React 18
 - Vite
 - Tailwind CSS
-- Zustand (state)
-- React Query (cache)
+- Zustand (state management)
+- React Query (cache & API)
 - React Router
+- Framer Motion (animations)
+- i18next (internationalisation)
+- PWA avec service worker
 
 **Shared**
 - Zod (validation)
 - Constantes communes
 - Types partagés
+- Validation centralisée
 
 ## 🚀 Installation
 
@@ -149,14 +160,20 @@ pnpm db:push
 
 ## 📚 Utilisation
 
-### 1. Créer un compte parent
+### 1. Créer un compte parent/enseignant
 
 1. Ouvrir http://localhost:5173
-2. Cliquer sur "Mode Parent"
+2. Cliquer sur "Mode Parent/Enseignant"
 3. S'inscrire avec email + mot de passe
 4. Se connecter
 
-### 2. Ajouter un enfant
+### 2. Configurer le groupe
+
+1. Le système crée automatiquement un groupe
+2. Noter le code de groupe (ex: ABC123)
+3. Configurer les paramètres (langue, pays)
+
+### 3. Ajouter des enfants/élèves
 
 1. Aller dans "Enfants"
 2. Créer un profil :
@@ -165,33 +182,55 @@ pnpm db:push
    - Code PIN (4 chiffres)
    - Photo (optionnel)
 
-### 3. Créer des tâches
+### 4. Créer des catégories et tâches
 
-1. Aller dans "Tâches"
-2. Créer une tâche template :
+1. Aller dans "Catégories" pour créer des catégories personnalisées
+2. Aller dans "Tâches" pour créer des templates :
    - Titre (ex: "Ranger ma chambre")
    - Catégorie (Routine / Maison / Études)
    - Points (1-100)
    - Récurrence (quotidien, semaine, weekend...)
 
-### 4. Connexion enfant
+### 5. Assigner des tâches
+
+1. Aller dans "Assignations"
+2. Assigner des tâches aux enfants
+3. Configurer les récurrences et dates
+
+### 6. Gérer la bibliothèque
+
+1. Aller dans "Gestion Livres"
+2. Importer des livres depuis Google Books
+3. Assigner des lectures aux enfants
+4. Suivre les progrès de lecture
+
+### 7. Système de récompenses
+
+1. Aller dans "Badges" pour créer des badges personnalisés
+2. Aller dans "Récompenses" pour créer des récompenses
+3. Les enfants peuvent échanger leurs points contre des récompenses
+
+### 8. Connexion enfant/élève
 
 1. Retour à la page de login
-2. "Mode Enfant"
-3. Sélectionner le profil
-4. Entrer le code PIN
+2. "Mode Enfant/Élève"
+3. Entrer le code de groupe
+4. Sélectionner le profil
+5. Entrer le code PIN
 
 ## 🔐 Authentification
 
-### Parent
+### Parent/Enseignant
 - Email + mot de passe sécurisé
 - Token JWT (24h)
 - Accès complet à l'administration
+- Gestion du groupe (famille/classe)
 
-### Enfant
-- Code PIN 4 chiffres
+### Enfant/Élève
+- Code de groupe + code PIN 4 chiffres
 - Token JWT avec permissions limitées
 - Accès uniquement à son espace personnel
+- Interface adaptée aux enfants
 
 ## 📁 Structure du code
 
@@ -201,11 +240,22 @@ pnpm db:push
 src/
 ├── config/           # Configuration (DB, JWT)
 ├── middlewares/      # Auth, erreurs
-├── modules/          # Modules métier
+├── modules/          # Modules métier (20+ modules)
 │   ├── auth/        # Authentification
-│   ├── children/    # Gestion enfants
-│   ├── tasks/       # (à venir)
-│   └── rewards/     # (à venir)
+│   ├── children/    # Gestion enfants/élèves
+│   ├── groups/      # Gestion groupes (familles/classes)
+│   ├── tasks/       # Templates et tâches
+│   ├── assignments/ # Assignations de tâches
+│   ├── submissions/ # Soumissions quotidiennes
+│   ├── categories/  # Catégories de tâches
+│   ├── books/       # Gestion bibliothèque
+│   ├── reading/     # Assignations et progrès lecture
+│   ├── awards/      # Badges et récompenses
+│   ├── points/      # Système de points
+│   ├── quiz/        # Quiz de lecture
+│   ├── stats/       # Statistiques
+│   ├── messages/    # Messages quotidiens
+│   └── evalWindow/  # Fenêtres d'évaluation
 └── routes/          # Routes principales
 ```
 
@@ -213,12 +263,21 @@ src/
 
 ```
 src/
-├── components/      # Composants UI
-├── lib/            # Utils, API client
-├── pages/          # Pages React
-│   ├── parent/     # Interface parent
-│   └── child/      # Interface enfant
-└── stores/         # Zustand stores
+├── components/      # Composants UI réutilisables
+│   ├── parent/      # Composants interface parent
+│   ├── child/       # Composants interface enfant
+│   ├── awards/      # Composants badges/récompenses
+│   ├── quiz/        # Composants quiz
+│   ├── branding/    # Logo, mascottes
+│   └── ui/          # Composants UI de base
+├── lib/            # Utils, API client, Supabase
+├── pages/           # Pages React
+│   ├── parent/      # Interface parent/enseignant (16 pages)
+│   └── child/       # Interface enfant/élève (8 pages)
+├── stores/          # Zustand stores (auth, navigation, theme)
+├── locales/         # Traductions (FR, EN, AR)
+├── hooks/           # Hooks personnalisés
+└── services/        # Services (auth, API)
 ```
 
 ### Shared (packages/shared)
@@ -280,17 +339,31 @@ pnpm start:web        # Preview du build web
    ```
 3. Configurer `VITE_API_URL` avec l'URL Railway
 
-## 🔮 Prochaines fonctionnalités
+## 🔮 Fonctionnalités actuelles
 
-- [ ] Module de tâches complètes (CRUD)
-- [ ] Système d'autoévaluation enfant
-- [ ] Validation parent avec commentaires
-- [ ] Génération automatique des tâches quotidiennes
-- [ ] Système de récompenses et badges
-- [ ] Statistiquec ess et graphiques
-- [ ] Notifications (web push)
-- [ ] Mode hors ligne (PWA)
-- [ ] Application mobile React Native
+### ✅ Implémentées
+
+- **Authentification complète** : Parents/enseignants et enfants/élèves
+- **Gestion des groupes** : Système famille/classe avec codes
+- **Tâches et assignations** : Templates, récurrences, assignations
+- **Système de points** : Attribution, historique, transactions
+- **Badges et récompenses** : Création, attribution, échange
+- **Bibliothèque de livres** : Import Google Books, gestion locale
+- **Lectures assignées** : Progression, quiz interactifs
+- **Quiz de lecture** : Questions par page, scoring
+- **Statistiques** : Dashboard, graphiques, historique
+- **Messages quotidiens** : Communication parent-enfant
+- **Interface multilingue** : Français, Anglais, Arabe
+- **PWA** : Installation mobile, mode hors ligne
+- **Responsive** : Mobile-first, tablette, desktop
+
+### 🚧 En développement
+
+- [ ] Notifications push
+- [ ] Mode hors ligne avancé
+- [ ] Export/import de données
+- [ ] Rapports PDF
+- [ ] Intégration calendrier
 
 ## 🤝 Contribution
 

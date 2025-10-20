@@ -104,16 +104,6 @@ export default function ReadingAssignmentsPage() {
 
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-display font-bold text-gray-900 dark:text-gray-100 mb-2">
-          📖 Assignations de Lecture
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Assignez des livres aux enfants avec un système de points
-        </p>
-      </div>
-
       {/* Actions */}
       <div className="mb-6">
         <button

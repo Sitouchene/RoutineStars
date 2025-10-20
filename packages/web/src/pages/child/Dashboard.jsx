@@ -13,11 +13,13 @@ import ThemeSelector from '../../components/ThemeSelector';
 import ChildHeader from '../../components/child/ChildHeader';
 import { seedToAvatarUrl } from '../../utils/avatarUtils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../../components/ui/Toast';
 import { useTasksRealtime, useSubmissionsRealtime } from '../../hooks/useRealtime';
 
 export default function ChildDashboard() {
   const { t } = useTranslation();
   const user = useAuthStore(state => state.user);
+  const { success, error: showError, ToastContainer } = useToast();
   const logout = useAuthStore(state => state.logout);
   const getAuthHeader = useAuthStore(state => state.getAuthHeader);
   const navigate = useNavigate();
@@ -118,10 +120,10 @@ export default function ChildDashboard() {
         }));
       });
       
-      alert(t('child.daySubmitted'));
+      success(t('child.daySubmitted'));
     },
     onError: (error) => {
-      alert(`${t('common.error')}: ${error.message}`);
+      showError(`${t('common.error')}: ${error.message}`);
     },
   });
 
@@ -436,6 +438,9 @@ export default function ChildDashboard() {
           </>
         )}
       </AnimatePresence>
+      
+      {/* Toast Container */}
+      <ToastContainer />
     </div>
   );
 }

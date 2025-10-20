@@ -38,11 +38,11 @@ export default function HomePage() {
   // Message dynamique de mOtivO selon performance
   const getMotivoMessage = () => {
     if (!dashboardStats) return '';
-    if (dashboardStats.totalPoints > 200) return "Incroyable ! Tu es un champion ! 🏆";
-    if (dashboardStats.weeklyProgress > 80) return "Continue comme ça, tu es sur la bonne voie ! 🌟";
-    if (dashboardStats.streak > 5) return "Bravo pour ta régularité ! 📚";
-    if (dashboardStats.booksRead > 0) return "Quelle belle lecture ! Continue ! 📖";
-    return "N'oublie pas, chaque effort compte ! 💪";
+    if (dashboardStats.totalPoints > 200) return t('mascot.messages.champion');
+    if (dashboardStats.weeklyProgress > 80) return t('mascot.messages.goodProgress');
+    if (dashboardStats.streak > 5) return t('mascot.messages.regularity');
+    if (dashboardStats.booksRead > 0) return t('mascot.messages.goodReading');
+    return t('mascot.messages.default');
   };
 
   // Mock data pour les badges/awards

@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, BookOpen, CheckCircle2, CalendarRange, BarChart3, User, LogOut } from 'lucide-react';
+import { Home, BookOpen, CheckCircle2, CalendarRange, Trophy, User, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import Logo from '../branding/Logo';
 
@@ -14,7 +14,7 @@ export default function SidebarChild() {
     { to: '/child/day', icon: CheckCircle2, label: t('child.navigation.day') },
     { to: '/child/agenda', icon: CalendarRange, label: t('child.navigation.agenda') },
     { to: '/child/reads', icon: BookOpen, label: t('child.navigation.reads') },
-    { to: '/child/stats', icon: BarChart3, label: t('child.navigation.stats') },
+    { to: '/child/awards', icon: Trophy, label: t('child.navigation.awards') },
     { to: '/child/profile', icon: User, label: t('child.navigation.profile') },
   ];
 

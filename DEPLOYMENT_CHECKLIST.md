@@ -3,7 +3,7 @@
 ## Backend (Render.com)
 
 1. **Variables d'environnement**
-   - [ ] `DATABASE_URL` avec `?pgbouncer=true&connection_limit=1` (port 6543)
+   - [✅] `DATABASE_URL` avec `?pgbouncer=true&connection_limit=1` (port 6543)
    - [ ] `DIRECT_URL` pour migrations (port 5432)
    - [ ] `JWT_SECRET` (générer une clé sécurisée)
    - [ ] `JWT_EXPIRES_IN=24h`

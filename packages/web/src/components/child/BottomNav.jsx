@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, BookOpen, CheckCircle2, CalendarRange, BarChart3 } from 'lucide-react';
+import { Home, BookOpen, CheckCircle2, CalendarRange, Trophy } from 'lucide-react';
 
 export default function BottomNav() {
   const { t } = useTranslation();
@@ -10,7 +10,7 @@ export default function BottomNav() {
     { to: '/child/agenda', icon: CalendarRange, label: t('child.navigation.agenda') },
     { to: '/child', icon: Home, label: t('child.navigation.home'), isMain: true },
     { to: '/child/reads', icon: BookOpen, label: t('child.navigation.reads') },
-    { to: '/child/stats', icon: BarChart3, label: t('child.navigation.stats') },
+    { to: '/child/awards', icon: Trophy, label: t('child.navigation.awards') },
   ];
 
   return (

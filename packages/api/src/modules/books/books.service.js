@@ -44,7 +44,10 @@ async function createOrGetBook(data) {
       return existing;
     }
     return await prisma.book.create({
-      data: { ...data, groupId: null },
+      data: { 
+        ...data, 
+        groupId: data.groupId || null 
+      },
       include: {
         group: true,
       }
@@ -63,6 +66,22 @@ async function createOrGetBook(data) {
  */
 export async function createBook(data) {
   return await createOrGetBook(data);
+}
+
+/**
+ * Récupérer les templates de livres
+ */
+export async function getBookTemplates(language = null) {
+  const where = {};
+  
+  if (language) {
+    where.language = language;
+  }
+  
+  return await prisma.bookTemplate.findMany({
+    where,
+    orderBy: { title: 'asc' }
+  });
 }
 
 /**

@@ -1,5 +1,7 @@
 import prisma from '../../config/database.js';
 import { calculatePointsByMilestone, calculatePagesUntilNextMilestone } from './reading.utils.js';
+import { updateChildPoints } from '../children/children.service.js';
+import { checkAndUnlockBadges } from '../awards/badges.service.js';
 
 /**
  * Assigner une lecture à un ou plusieurs enfants
@@ -216,7 +218,23 @@ export async function updateProgress(assignmentId, currentPage) {
       finishedAt: isFinished ? new Date() : null
     }
   });
+
+  // Calculer la différence de points pour mettre à jour le total de l'enfant
+  const previousPoints = assignment.progress?.currentPoints || 0;
+  const pointsDifference = currentPoints - previousPoints;
   
+  if (pointsDifference > 0) {
+    await updateChildPoints(assignment.childId, pointsDifference);
+    
+    // Vérifier et débloquer automatiquement les badges
+    try {
+      await checkAndUnlockBadges(assignment.childId);
+    } catch (error) {
+      console.error('Erreur lors de la vérification des badges:', error);
+      // Ne pas faire échouer la mise à jour si la vérification des badges échoue
+    }
+  }
+
   return {
     ...progress,
     assignment,

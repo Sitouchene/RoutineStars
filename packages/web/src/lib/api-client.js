@@ -311,5 +311,62 @@ export const groupsApi = {
   },
 };
 
+// Badges
+export const badgesApi = {
+  getAllGlobal: () => apiClient.get('/badges/global'),
+  getGroup: (groupId, headers) => apiClient.get(`/badges/group/${groupId}`, { headers }),
+  importGlobal: (groupId, globalBadgeId, headers) => apiClient.post(`/badges/group/${groupId}/import`, { globalBadgeId }, { headers }),
+  createCustom: (groupId, badgeData, headers) => apiClient.post(`/badges/group/${groupId}/custom`, badgeData, { headers }),
+  update: (badgeId, updates, headers) => apiClient.put(`/badges/group/${badgeId}`, updates, { headers }),
+  toggle: (badgeId, isEnabled, headers) => apiClient.patch(`/badges/group/${badgeId}/toggle`, { isEnabled }, { headers }),
+  getUserBadges: (userId, headers) => apiClient.get(`/badges/user/${userId}`, { headers }),
+  unlockManually: (userId, badgeId, headers) => apiClient.post(`/badges/user/${userId}/unlock/${badgeId}`, {}, { headers }),
+  checkAndUnlock: (userId, headers) => apiClient.post(`/badges/user/${userId}/check-unlock`, {}, { headers }),
+  getStats: (userId, headers) => apiClient.get(`/badges/user/${userId}/stats`, { headers }),
+};
+
+// Récompenses
+export const rewardsApi = {
+  getAllGlobal: () => apiClient.get('/rewards/global'),
+  getGroup: (groupId, headers) => apiClient.get(`/rewards/group/${groupId}`, { headers }),
+  importGlobal: (groupId, globalRewardId, headers) => apiClient.post(`/rewards/group/${groupId}/import`, { globalRewardId }, { headers }),
+  createCustom: (groupId, rewardData, headers) => apiClient.post(`/rewards/group/${groupId}/custom`, rewardData, { headers }),
+  update: (rewardId, updates, headers) => apiClient.put(`/rewards/group/${rewardId}`, updates, { headers }),
+  toggle: (rewardId, isEnabled, headers) => apiClient.patch(`/rewards/group/${rewardId}/toggle`, { isEnabled }, { headers }),
+  getUserRedemptions: (userId, headers) => apiClient.get(`/rewards/user/${userId}/redemptions`, { headers }),
+  redeemReward: (userId, rewardId, childComment, headers) => 
+    apiClient.post(`/rewards/user/${userId}/redeem`, { rewardId, childComment }, { headers }),
+  getStats: (userId, headers) => apiClient.get(`/rewards/user/${userId}/stats`, { headers }),
+  getPendingRedemptions: (groupId, headers) => apiClient.get(`/rewards/group/${groupId}/pending`, { headers }),
+  updateRedemptionStatus: (redemptionId, status, parentComment, headers) =>
+    apiClient.put(`/rewards/redemption/${redemptionId}/status`, { status, parentComment }, { headers }),
+};
+
+// Points
+export const pointsApi = {
+  getBalance: (userId, headers) => apiClient.get(`/points/user/${userId}/balance`, { headers }),
+  getTransactions: (userId, headers, limit = 50) => {
+    const qs = new URLSearchParams({ limit: limit.toString() }).toString();
+    return apiClient.get(`/points/user/${userId}/transactions?${qs}`, { headers });
+  },
+  getStats: (userId, headers) => apiClient.get(`/points/user/${userId}/stats`, { headers }),
+  addPoints: (userId, amount, description, source, sourceId, headers) =>
+    apiClient.post(`/points/user/${userId}/add`, { amount, description, source, sourceId }, { headers }),
+  spendPoints: (userId, amount, description, source, sourceId, headers) =>
+    apiClient.post(`/points/user/${userId}/spend`, { amount, description, source, sourceId }, { headers }),
+  addBonusPoints: (userId, amount, description, headers) =>
+    apiClient.post(`/points/user/${userId}/bonus`, { amount, description }, { headers }),
+};
+
+// Quiz
+export const quizApi = {
+  getBookQuizzes: (bookId, headers) => apiClient.get(`/quiz/book/${bookId}`, { headers }),
+  getTriggeredQuiz: (bookId, currentPage, headers) => apiClient.get(`/quiz/book/${bookId}/trigger/${currentPage}`, { headers }),
+  submitAttempt: (quizId, score, timeSpent, headers) => apiClient.post(`/quiz/attempt`, { quizId, score, timeSpent }, { headers }),
+  getUserAttempts: (userId, quizId, headers) => apiClient.get(`/quiz/user/${userId}/attempts/${quizId || ''}`, { headers }),
+  getUserStats: (userId, headers) => apiClient.get(`/quiz/user/${userId}/stats`, { headers }),
+  getAvailableQuizzes: (userId, headers) => apiClient.get(`/quiz/user/${userId}/available`, { headers }),
+};
+
 
 

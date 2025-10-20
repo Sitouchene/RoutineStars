@@ -12,7 +12,9 @@
     "db:generate": "prisma generate",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:migrate:resolve": "prisma migrate resolve --applied 20250110_add_genres_to_books",
-    "verify:config": "node scripts/verify-config.js",
+    "seed:awards": "node scripts/seed-awards.js",
+    "seed:quizzes": "node scripts/seed-quizzes.js",
+    "test:system": "node scripts/test-system.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {
