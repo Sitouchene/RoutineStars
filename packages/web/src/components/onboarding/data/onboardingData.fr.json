@@ -90,12 +90,12 @@
         ],
         "tablet": [
           {
-            "image": "/images/sc_02_01m.png",
+            "image": "/images/sc_02_01t.png",
             "placeholder": "Tablette: Interface d'ajout d'enfant",
             "resolution": "1024x768px"
           },
           {
-            "image": "/images/sc_02_02m.png",
+            "image": "/images/sc_02_02t.png",
             "placeholder": "Tablette: Génération du QR code",
             "resolution": "1024x768px"
           }
@@ -148,17 +148,17 @@
         ],
         "tablet": [
           {
-            "image": "/images/sc_03_01m.png",
+            "image": "/images/sc_03_01t.png",
             "placeholder": "Tablette: Interface de sélection de tâches",
             "resolution": "1024x768px"
           },
           {
-            "image": "/images/sc_03_02m.png",
+            "image": "/images/sc_03_02t.png",
             "placeholder": "Tablette: Drag & drop d'une tâche",
             "resolution": "1024x768px"
           },
           {
-            "image": "/images/sc_03_03m.png",
+            "image": "/images/sc_03_03t.png",
             "placeholder": "Tablette: Calendrier avec assignation",
             "resolution": "1024x768px"
           }

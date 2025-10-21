@@ -90,12 +90,12 @@
         ],
         "tablet": [
           {
-            "image": "/images/sc_02_01m.png",
+            "image": "/images/sc_02_01t.png",
             "placeholder": "التابلت: واجهة إضافة طفل",
             "resolution": "1024x768px"
           },
           {
-            "image": "/images/sc_02_02m.png",
+            "image": "/images/sc_02_02t.png",
             "placeholder": "التابلت: توليد رمز QR",
             "resolution": "1024x768px"
           }
@@ -148,17 +148,17 @@
         ],
         "tablet": [
           {
-            "image": "/images/sc_03_01m.png",
+            "image": "/images/sc_03_01t.png",
             "placeholder": "التابلت: واجهة اختيار المهام",
             "resolution": "1024x768px"
           },
           {
-            "image": "/images/sc_03_02m.png",
+            "image": "/images/sc_03_02t.png",
             "placeholder": "التابلت: سحب وإفلات مهمة",
             "resolution": "1024x768px"
           },
           {
-            "image": "/images/sc_03_03m.png",
+            "image": "/images/sc_03_03t.png",
             "placeholder": "التابلت: التقويم مع التعيين",
             "resolution": "1024x768px"
           }

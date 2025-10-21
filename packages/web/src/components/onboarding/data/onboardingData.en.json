@@ -90,12 +90,12 @@
         ],
         "tablet": [
           {
-            "image": "/images/sc_02_01m.png",
+            "image": "/images/sc_02_01t.png",
             "placeholder": "Tablet: Add child interface",
             "resolution": "1024x768px"
           },
           {
-            "image": "/images/sc_02_02m.png",
+            "image": "/images/sc_02_02t.png",
             "placeholder": "Tablet: QR code generation",
             "resolution": "1024x768px"
           }
@@ -148,17 +148,17 @@
         ],
         "tablet": [
           {
-            "image": "/images/sc_03_01m.png",
+            "image": "/images/sc_03_01t.png",
             "placeholder": "Tablet: Task selection interface",
             "resolution": "1024x768px"
           },
           {
-            "image": "/images/sc_03_02m.png",
+            "image": "/images/sc_03_02t.png",
             "placeholder": "Tablet: Drag & drop a task",
             "resolution": "1024x768px"
           },
           {
-            "image": "/images/sc_03_03m.png",
+            "image": "/images/sc_03_03t.png",
             "placeholder": "Tablet: Calendar with assignment",
             "resolution": "1024x768px"
           }
